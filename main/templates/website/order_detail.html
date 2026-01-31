@@ -43,10 +43,35 @@
                     <h5 class="mb-0">Delivery Information</h5>
                 </div>
                 <div class="card-body">
-                    <p class="mb-1"><strong>Address:</strong> {{ order.delivery_address }}</p>
-                    <p class="mb-1"><strong>City:</strong> {{ order.delivery_city }}</p>
-                    <p class="mb-1"><strong>State:</strong> {{ order.delivery_state }}</p>
-                    <p class="mb-0"><strong>Pincode:</strong> {{ order.delivery_pincode }}</p>
+                    <p class="mb-2">
+                        <strong>Delivery Method:</strong> 
+                        <span class="badge bg-{% if order.delivery_method == 'home_delivery' %}primary{% else %}info{% endif %}">
+                            {% if order.delivery_method == 'home_delivery' %}
+                                <i class="bi bi-truck"></i> Home Delivery
+                            {% else %}
+                                <i class="bi bi-shop"></i> Pickup from Warehouse
+                            {% endif %}
+                        </span>
+                    </p>
+                    
+                    {% if order.delivery_method == 'home_delivery' %}
+                        <hr>
+                        <p class="mb-1"><strong>Address:</strong> {{ order.delivery_address }}</p>
+                        <p class="mb-1"><strong>City:</strong> {{ order.delivery_city }}</p>
+                        <p class="mb-1"><strong>State:</strong> {{ order.delivery_state }}</p>
+                        <p class="mb-0"><strong>Pincode:</strong> {{ order.delivery_pincode }}</p>
+                    {% else %}
+                        <hr>
+                        <div class="alert alert-info mb-0">
+                            <h6><i class="bi bi-geo-alt"></i> Warehouse Address:</h6>
+                            <p class="mb-0">
+                                <strong>RentEase Warehouse</strong><br>
+                                123 Main Street, Industrial Area<br>
+                                City, State - 400001<br>
+                                <i class="bi bi-telephone"></i> +91 1234567890
+                            </p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

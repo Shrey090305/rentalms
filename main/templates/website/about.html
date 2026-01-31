@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us - RentEase{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h1 class="mb-4"><i class="bi bi-info-circle"></i> About RentEase</h1>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h3 class="text-primary mb-3">Who We Are</h3>
+                    <p class="lead">
+                        RentEase is your trusted rental management platform that connects customers with quality products and services. 
+                        We make renting easy, affordable, and hassle-free.
+                    </p>
+                    <p>
+                        Founded in 2026, RentEase has grown to become a leading marketplace for rental services, 
+                        offering everything from electronics and furniture to sports equipment and party supplies. 
+                        Our platform brings together verified vendors and customers, ensuring safe and reliable transactions.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h3 class="text-primary mb-3">Our Mission</h3>
+                    <p>
+                        To provide a seamless rental experience that makes quality products accessible to everyone, 
+                        while supporting local vendors and promoting sustainable consumption.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h3 class="text-primary mb-3">Why Choose RentEase?</h3>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-check-circle-fill text-success fs-3"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5>Verified Vendors</h5>
+                                    <p class="text-muted">All our vendors are verified and vetted for quality and reliability.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-shield-check text-success fs-3"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5>Secure Payments</h5>
+                                    <p class="text-muted">Your transactions are protected with industry-standard encryption.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-truck text-success fs-3"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5>Flexible Delivery</h5>
+                                    <p class="text-muted">Choose between home delivery or warehouse pickup for your convenience.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-headset text-success fs-3"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5>Customer Support</h5>
+                                    <p class="text-muted">Our dedicated support team is always ready to help you.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h3 class="text-primary mb-3">Contact Us</h3>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6><i class="bi bi-envelope"></i> Email</h6>
+                            <p class="text-muted">info@rentease.com</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6><i class="bi bi-telephone"></i> Phone</h6>
+                            <p class="text-muted">+91 1234567890</p>
+                        </div>
+                        <div class="col-12">
+                            <h6><i class="bi bi-geo-alt"></i> Address</h6>
+                            <p class="text-muted">
+                                123 Main Street, Industrial Area<br>
+                                City, State - 400001<br>
+                                India
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'website:product_list' %}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-grid"></i> Browse Products
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

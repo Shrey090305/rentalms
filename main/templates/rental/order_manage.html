@@ -4,29 +4,85 @@
 
 {% block content %}
 <div class="container-fluid my-4">
-    <h1 class="mb-4"><i class="bi bi-list-check"></i> Manage Orders</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-list-check"></i> Manage Orders</h1>
+        {% if urgent_count > 0 %}
+        <div class="alert alert-warning mb-0 py-2">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <strong>{{ urgent_count }}</strong> order(s) require attention (return approaching/overdue)
+        </div>
+        {% endif %}
+    </div>
     
-    <!-- Filter -->
+    <!-- Filters -->
     <div class="card mb-3">
         <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-auto">
-                    <label class="form-label">Filter by Status:</label>
-                </div>
-                <div class="col-auto">
-                    <select name="status" class="form-select">
-                        <option value="">All</option>
-                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
-                        <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
-                        <option value="picked_up" {% if status_filter == 'picked_up' %}selected{% endif %}>Picked Up</option>
-                        <option value="rented" {% if status_filter == 'rented' %}selected{% endif %}>Rented</option>
-                        <option value="returned" {% if status_filter == 'returned' %}selected{% endif %}>Returned</option>
-                    </select>
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-primary">Filter</button>
+            <form method="get">
+                <div class="row g-3">
+                    <!-- Status Filter -->
+                    <div class="col-md-3">
+                        <label class="form-label">Order Status:</label>
+                        <select name="status" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                            <option value="picked_up" {% if status_filter == 'picked_up' %}selected{% endif %}>Picked Up</option>
+                            <option value="rented" {% if status_filter == 'rented' %}selected{% endif %}>Rented</option>
+                            <option value="returned" {% if status_filter == 'returned' %}selected{% endif %}>Returned</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Return Date Filter -->
+                    <div class="col-md-3">
+                        <label class="form-label">Return Status:</label>
+                        <select name="return_status" class="form-select">
+                            <option value="">All Returns</option>
+                            <option value="urgent" {% if return_filter == 'urgent' %}selected{% endif %}>⚠️ Urgent (Approaching/Overdue)</option>
+                            <option value="approaching" {% if return_filter == 'approaching' %}selected{% endif %}>🕐 Approaching (Within 24h)</option>
+                            <option value="overdue" {% if return_filter == 'overdue' %}selected{% endif %}>🔴 Overdue</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-funnel"></i> Apply Filters
+                        </button>
+                    </div>
+                    
+                    {% if status_filter or return_filter %}
+                    <div class="col-md-2 d-flex align-items-end">
+                        <a href="{% url 'rental:order_manage' %}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
             </form>
+        </div>
+    </div>
+    
+    <!-- Quick Filter Buttons -->
+    <div class="mb-3">
+        <div class="btn-group" role="group">
+            <a href="{% url 'rental:order_manage' %}" 
+               class="btn btn-sm {% if not status_filter and not return_filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                All Orders
+            </a>
+            <a href="?return_status=urgent" 
+               class="btn btn-sm {% if return_filter == 'urgent' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                <i class="bi bi-exclamation-triangle"></i> Urgent Returns
+                {% if urgent_count > 0 %}
+                <span class="badge bg-white text-danger">{{ urgent_count }}</span>
+                {% endif %}
+            </a>
+            <a href="?status=picked_up" 
+               class="btn btn-sm {% if status_filter == 'picked_up' %}btn-info{% else %}btn-outline-info{% endif %}">
+                Picked Up
+            </a>
+            <a href="?status=rented" 
+               class="btn btn-sm {% if status_filter == 'rented' %}btn-info{% else %}btn-outline-info{% endif %}">
+                Currently Rented
+            </a>
         </div>
     </div>
     
@@ -40,6 +96,7 @@
                                 <th>Order #</th>
                                 <th>Customer</th>
                                 <th>Date</th>
+                                <th>Return Date</th>
                                 <th>Items</th>
                                 <th>Total</th>
                                 <th>Status</th>
@@ -48,13 +105,28 @@
                         </thead>
                         <tbody>
                             {% for order in orders %}
-                                <tr>
+                                {% with return_status=order.get_return_status %}
+                                <tr class="{% if return_status == 'overdue' %}table-danger{% elif return_status == 'approaching' %}table-warning{% endif %}">
                                     <td><strong>{{ order.order_number }}</strong></td>
                                     <td>
-                                        {{ order.customer.username }}<br>
-                                        <small class="text-muted">{{ order.customer.company_name }}</small>
+                                        {{ order.customer.get_full_name|default:order.customer.username }}<br>
+                                        <small class="text-muted">{{ order.customer.email }}</small>
                                     </td>
-                                    <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <small>{{ order.created_at|date:"M d, Y" }}<br>{{ order.created_at|time:"g:i A" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if order.get_latest_return_date %}
+                                            <small>{{ order.get_latest_return_date|date:"M d, Y" }}<br>{{ order.get_latest_return_date|time:"g:i A" }}</small>
+                                            {% if return_status == 'overdue' %}
+                                                <br><span class="badge bg-danger"><i class="bi bi-exclamation-circle"></i> OVERDUE</span>
+                                            {% elif return_status == 'approaching' %}
+                                                <br><span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Soon</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <small class="text-muted">N/A</small>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ order.lines.count }}</td>
                                     <td>₹{{ order.get_total }}</td>
                                     <td>
@@ -62,6 +134,7 @@
                                             {% if order.status == 'confirmed' %}bg-success
                                             {% elif order.status == 'pending' %}bg-warning
                                             {% elif order.status == 'cancelled' %}bg-danger
+                                            {% elif order.status == 'returned' %}bg-secondary
                                             {% else %}bg-info{% endif %}">
                                             {{ order.get_status_display }}
                                         </span>
@@ -72,6 +145,7 @@
                                         </a>
                                     </td>
                                 </tr>
+                                {% endwith %}
                             {% endfor %}
                         </tbody>
                     </table>

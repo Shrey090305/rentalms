@@ -11,8 +11,15 @@ urlpatterns = [
     path('checkout/', views.checkout_view, name='checkout'),
     path('orders/', views.my_orders, name='my_orders'),
     path('order/<int:pk>/', views.order_detail, name='order_detail'),
+    path('order-success/', views.order_success, name='order_success'),
     path('invoice/<int:pk>/', views.invoice_view, name='invoice'),
     path('invoice/<int:pk>/download/', views.invoice_pdf_download, name='invoice_download'),
     path('payment/<int:invoice_id>/', views.payment_view, name='payment'),
     path('payment/<int:invoice_id>/success/', views.payment_success, name='payment_success'),
+    # Coupon endpoints
+    path('validate-coupon/', views.validate_coupon, name='validate_coupon'),
+    path('remove-coupon/', views.remove_coupon, name='remove_coupon'),
+    # Informational pages
+    path('about/', views.about, name='about'),
+    path('terms/', views.terms, name='terms'),
 ]

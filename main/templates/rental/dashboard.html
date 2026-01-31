@@ -77,6 +77,68 @@
         </div>
     </div>
     
+    <!-- Urgent Returns Alert -->
+    {% if urgent_returns_count > 0 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <h5 class="alert-heading">
+                    <i class="bi bi-exclamation-triangle-fill"></i> 
+                    Urgent: {{ urgent_returns_count }} Order(s) Require Immediate Attention
+                </h5>
+                <p class="mb-2">
+                    <strong>{{ overdue_count }}</strong> overdue returns &nbsp;|&nbsp; 
+                    <strong>{{ approaching_count }}</strong> returns due within 24 hours
+                </p>
+                <hr>
+                {% if urgent_returns %}
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Return Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in urgent_returns %}
+                            <tr>
+                                <td><strong>{{ order.order_number }}</strong></td>
+                                <td>{{ order.customer.get_full_name|default:order.customer.username }}</td>
+                                <td>
+                                    {{ order.get_latest_return_date|date:"M d, Y g:i A" }}
+                                    {% if order.is_return_overdue %}
+                                        <span class="badge bg-danger ms-1">OVERDUE</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark ms-1">DUE SOON</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-info">{{ order.get_status_display }}</span></td>
+                                <td>
+                                    <a href="{% url 'rental:order_detail_manage' order.pk %}" class="btn btn-sm btn-outline-dark">
+                                        View Order
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+                <div class="mt-3">
+                    <a href="{% url 'rental:order_manage' %}?return_status=urgent" class="btn btn-danger">
+                        <i class="bi bi-list-check"></i> View All Urgent Returns
+                    </a>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
     <div class="row">
         <!-- Most Rented Products -->
         <div class="col-md-6 mb-4">

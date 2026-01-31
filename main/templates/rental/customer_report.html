@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Customer Report{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin-bottom: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Customer Report</h2>
+            <p class="text-muted">Customer spending, behavior, and retention analysis</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'rental:reports_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- Customer Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6>Total Customers</h6>
+                    <h3>{{ total_customers }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6>New Customers</h6>
+                    <h3>{{ new_customers }}</h3>
+                    <small>This month</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6>Returning Customers</h6>
+                    <h3>{{ returning_customers }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h6>Avg Orders per Customer</h6>
+                    <h3>{{ avg_orders_per_customer|floatformat:1 }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New vs Returning Customers -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>New vs Returning Customers</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="customerTypeChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6 d-flex align-items-center">
+                    <div class="w-100">
+                        <div class="mb-3">
+                            <h6>New Customers (1 order)</h6>
+                            <div class="progress" style="height: 30px;">
+                                <div class="progress-bar bg-success" style="width: {{ new_customer_percentage }}%">
+                                    {{ new_customers }} ({{ new_customer_percentage|floatformat:1 }}%)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Returning Customers (2+ orders)</h6>
+                            <div class="progress" style="height: 30px;">
+                                <div class="progress-bar bg-info" style="width: {{ returning_customer_percentage }}%">
+                                    {{ returning_customers }} ({{ returning_customer_percentage|floatformat:1 }}%)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Customers by Spending -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Top 50 Customers by Total Spending</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Customer Name</th>
+                            <th>Email</th>
+                            <th>Total Orders</th>
+                            <th>Total Spent</th>
+                            <th>Avg Order Value</th>
+                            <th>Customer Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in top_customers %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ customer.user__first_name }} {{ customer.user__last_name }}</td>
+                            <td>{{ customer.user__email }}</td>
+                            <td>{{ customer.order_count }}</td>
+                            <td>₹{{ customer.total_spent|floatformat:2 }}</td>
+                            <td>₹{{ customer.avg_order_value|floatformat:2 }}</td>
+                            <td>
+                                {% if customer.order_count == 1 %}
+                                <span class="badge bg-success">New</span>
+                                {% elif customer.order_count <= 3 %}
+                                <span class="badge bg-info">Regular</span>
+                                {% else %}
+                                <span class="badge bg-warning">Loyal</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No customer data available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Frequency Distribution -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Customer Order Frequency Distribution</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="orderFrequencyChart"></canvas>
+            </div>
+            <div class="table-responsive mt-3">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Order Range</th>
+                            <th>Number of Customers</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for freq in order_frequency %}
+                        <tr>
+                            <td>
+                                {% if freq.order_range == '1' %}
+                                1 order (New)
+                                {% elif freq.order_range == '2-3' %}
+                                2-3 orders (Regular)
+                                {% elif freq.order_range == '4-5' %}
+                                4-5 orders (Frequent)
+                                {% else %}
+                                6+ orders (Loyal)
+                                {% endif %}
+                            </td>
+                            <td>{{ freq.customer_count }}</td>
+                            <td>{{ freq.percentage|floatformat:1 }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Customer Type Chart
+const customerTypeCtx = document.getElementById('customerTypeChart').getContext('2d');
+const customerTypeChart = new Chart(customerTypeCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['New Customers', 'Returning Customers'],
+        datasets: [{
+            data: [{{ new_customers }}, {{ returning_customers }}],
+            backgroundColor: [
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(54, 162, 235, 0.8)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Order Frequency Distribution Chart
+const orderFrequencyCtx = document.getElementById('orderFrequencyChart').getContext('2d');
+const orderFrequencyChart = new Chart(orderFrequencyCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ frequency_labels|safe }},
+        datasets: [{
+            label: 'Number of Customers',
+            data: {{ frequency_counts|safe }},
+            backgroundColor: [
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 206, 86, 0.8)',
+                'rgba(153, 102, 255, 0.8)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Number of Customers'
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

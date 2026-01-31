@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sales Report{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin-bottom: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Sales Report</h2>
+            <p class="text-muted">Comprehensive sales analysis and order trends</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'rental:reports_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Apply Filter</button>
+                    <a href="{% url 'rental:sales_report' %}" class="btn btn-outline-secondary">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6>Total Orders</h6>
+                    <h3>{{ total_orders }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6>Total Revenue</h6>
+                    <h3>₹{{ total_revenue|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6>Avg Order Value</h6>
+                    <h3>₹{{ avg_order_value|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h6>Unique Customers</h6>
+                    <h3>{{ unique_customers }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Sales Trend Chart -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Daily Sales Trend</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="dailySalesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders by Status -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Orders by Status</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="orderStatusChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Orders</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for status in orders_by_status %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-secondary">{{ status.status|default:"Pending" }}</span>
+                                </td>
+                                <td>{{ status.count }}</td>
+                                <td>{{ status.percentage|floatformat:1 }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Customers -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Top 10 Customers by Revenue</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Customer</th>
+                            <th>Email</th>
+                            <th>Total Orders</th>
+                            <th>Total Spent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in top_customers %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ customer.user__first_name }} {{ customer.user__last_name }}</td>
+                            <td>{{ customer.user__email }}</td>
+                            <td>{{ customer.order_count }}</td>
+                            <td>₹{{ customer.total_spent|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No customer data available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Daily Sales Trend Chart
+const dailySalesCtx = document.getElementById('dailySalesChart').getContext('2d');
+const dailySalesChart = new Chart(dailySalesCtx, {
+    type: 'line',
+    data: {
+        labels: {{ daily_sales_labels|safe }},
+        datasets: [
+            {
+                label: 'Revenue (₹)',
+                data: {{ daily_sales_revenue|safe }},
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                yAxisID: 'y'
+            },
+            {
+                label: 'Orders',
+                data: {{ daily_sales_orders|safe }},
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                yAxisID: 'y1'
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false
+        },
+        scales: {
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                title: {
+                    display: true,
+                    text: 'Revenue (₹)'
+                }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: {
+                    display: true,
+                    text: 'Number of Orders'
+                },
+                grid: {
+                    drawOnChartArea: false
+                }
+            }
+        }
+    }
+});
+
+// Order Status Pie Chart
+const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
+const orderStatusChart = new Chart(orderStatusCtx, {
+    type: 'pie',
+    data: {
+        labels: {{ status_labels|safe }},
+        datasets: [{
+            data: {{ status_counts|safe }},
+            backgroundColor: [
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 206, 86, 0.8)',
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(153, 102, 255, 0.8)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

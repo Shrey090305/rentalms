@@ -12,7 +12,7 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = [
-            'name', 'description', 'image', 'cost_price', 'sales_price',
+            'category', 'name', 'description', 'image', 'cost_price', 'sales_price',
             'price_per_hour', 'price_per_day', 'price_per_week',
             'quantity_on_hand', 'is_rentable', 'publish_on_website', 'attributes'
         ]
@@ -84,8 +84,9 @@ class CheckoutForm(forms.ModelForm):
     
     class Meta:
         model = RentalOrder
-        fields = ['delivery_address', 'delivery_city', 'delivery_state', 'delivery_pincode', 'notes']
+        fields = ['delivery_method', 'delivery_address', 'delivery_city', 'delivery_state', 'delivery_pincode', 'notes']
         widgets = {
+            'delivery_method': forms.RadioSelect,
             'delivery_address': forms.Textarea(attrs={'rows': 3}),
             'notes': forms.Textarea(attrs={'rows': 2}),
         }

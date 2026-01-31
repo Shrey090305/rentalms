@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Product Report{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin-bottom: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Product Report</h2>
+            <p class="text-muted">Product performance, inventory, and rental analytics</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'rental:reports_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- Most Rented Products -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Top 20 Most Rented Products</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="mostRentedChart"></canvas>
+            </div>
+            <div class="table-responsive mt-3">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Times Rented</th>
+                            <th>Total Revenue</th>
+                            <th>Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in most_rented %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ product.name }}</td>
+                            <td>
+                                {% if product.category %}
+                                <span class="badge bg-info">{{ product.category.name }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Uncategorized</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ product.rental_count }}</td>
+                            <td>₹{{ product.rental_revenue|floatformat:2 }}</td>
+                            <td>
+                                {% if product.stock <= 5 %}
+                                <span class="badge bg-danger">{{ product.stock }}</span>
+                                {% else %}
+                                <span class="badge bg-success">{{ product.stock }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No rental data available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Rentals by Category</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Rentals</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat in category_breakdown %}
+                            <tr>
+                                <td>{{ cat.category__name|default:"Uncategorized" }}</td>
+                                <td>{{ cat.rental_count }}</td>
+                                <td>₹{{ cat.revenue|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center">No category data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Alert -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0">
+                <i class="fas fa-exclamation-triangle"></i> Low Stock Alert (≤5 units)
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Current Stock</th>
+                            <th>Times Rented (Last 30 Days)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in low_stock %}
+                        <tr>
+                            <td>{{ product.name }}</td>
+                            <td>
+                                {% if product.category %}
+                                {{ product.category.name }}
+                                {% else %}
+                                Uncategorized
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if product.stock == 0 %}
+                                <span class="badge bg-danger">Out of Stock</span>
+                                {% else %}
+                                <span class="badge bg-warning">{{ product.stock }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ product.recent_rentals }}</td>
+                            <td>
+                                {% if product.stock == 0 %}
+                                <span class="text-danger">Action Required</span>
+                                {% else %}
+                                <span class="text-warning">Low Stock</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-success">
+                                <i class="fas fa-check-circle"></i> All products have sufficient stock
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Utilization -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Product Utilization (Top 10)</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Percentage of time products are rented out</p>
+            {% for product in utilization %}
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>{{ product.name }}</span>
+                    <span class="text-muted">{{ product.utilization_rate|floatformat:1 }}%</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar 
+                        {% if product.utilization_rate >= 70 %}bg-success
+                        {% elif product.utilization_rate >= 40 %}bg-warning
+                        {% else %}bg-danger{% endif %}" 
+                        role="progressbar" 
+                        style="width: {{ product.utilization_rate }}%">
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center">No utilization data available</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Most Rented Products Chart
+const mostRentedCtx = document.getElementById('mostRentedChart').getContext('2d');
+const mostRentedChart = new Chart(mostRentedCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ most_rented_labels|safe }},
+        datasets: [{
+            label: 'Times Rented',
+            data: {{ most_rented_counts|safe }},
+            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Number of Rentals'
+                }
+            }
+        }
+    }
+});
+
+// Category Breakdown Chart
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+const categoryChart = new Chart(categoryCtx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ category_labels|safe }},
+        datasets: [{
+            data: {{ category_counts|safe }},
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 206, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+                'rgba(255, 159, 64, 0.8)',
+                'rgba(199, 199, 199, 0.8)',
+                'rgba(83, 102, 255, 0.8)',
+                'rgba(255, 102, 255, 0.8)',
+                'rgba(102, 255, 178, 0.8)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -14,9 +14,57 @@
                     <h5 class="mb-0">Delivery Information</h5>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" id="checkout-form">
                         {% csrf_token %}
-                        {% bootstrap_form form %}
+                        
+                        <!-- Delivery Method -->
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Delivery Method</strong></label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="delivery_method" id="home_delivery" value="home_delivery" checked required>
+                                <label class="form-check-label" for="home_delivery">
+                                    <i class="bi bi-truck"></i> <strong>Home Delivery</strong><br>
+                                    <small class="text-muted">We'll deliver the products to your address</small>
+                                </label>
+                            </div>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="radio" name="delivery_method" id="pickup" value="pickup" required>
+                                <label class="form-check-label" for="pickup">
+                                    <i class="bi bi-shop"></i> <strong>Pickup from Warehouse</strong><br>
+                                    <small class="text-muted">You'll collect the products from our location</small>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Address Fields (shown only for home delivery) -->
+                        <div id="address-fields">
+                            {% bootstrap_field form.delivery_address %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {% bootstrap_field form.delivery_city %}
+                                </div>
+                                <div class="col-md-6">
+                                    {% bootstrap_field form.delivery_state %}
+                                </div>
+                            </div>
+                            {% bootstrap_field form.delivery_pincode %}
+                        </div>
+                        
+                        <!-- Warehouse Address (shown only for pickup) -->
+                        <div id="warehouse-info" style="display: none;">
+                            <div class="alert alert-info">
+                                <h6><i class="bi bi-geo-alt"></i> Warehouse Address:</h6>
+                                <p class="mb-0">
+                                    <strong>RentEase Warehouse</strong><br>
+                                    123 Main Street, Industrial Area<br>
+                                    City, State - 400001<br>
+                                    <i class="bi bi-telephone"></i> +91 1234567890
+                                </p>
+                            </div>
+                        </div>
+                        
+                        {% bootstrap_field form.notes %}
+                        
                         <button type="submit" class="btn btn-primary btn-lg w-100">
                             <i class="bi bi-check-circle"></i> Place Order
                         </button>
@@ -25,6 +73,31 @@
             </div>
         </div>
         <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-tag"></i> Apply Coupon</h5>
+                </div>
+                <div class="card-body">
+                    {% if applied_coupon %}
+                    <div class="alert alert-success mb-2" id="coupon-success">
+                        <strong><i class="bi bi-check-circle"></i> {{ applied_coupon.code }}</strong> applied!<br>
+                        <small>{{ applied_coupon.discount_percentage }}% discount</small>
+                        <button type="button" class="btn btn-sm btn-outline-danger float-end" id="remove-coupon-btn">
+                            Remove
+                        </button>
+                    </div>
+                    {% else %}
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="coupon-code" placeholder="Enter coupon code" style="text-transform: uppercase;">
+                        <button class="btn btn-success" type="button" id="apply-coupon-btn">
+                            Apply
+                        </button>
+                    </div>
+                    <div id="coupon-message" class="mt-2"></div>
+                    {% endif %}
+                </div>
+            </div>
+            
             <div class="card">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">Order Summary</h5>
@@ -34,11 +107,21 @@
                     <hr>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Subtotal:</span>
-                        <strong>₹{{ subtotal }}</strong>
+                        <strong id="subtotal-display">₹{{ subtotal }}</strong>
+                    </div>
+                    {% if discount_amount > 0 %}
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span>Discount:</span>
+                        <strong id="discount-display">-₹{{ discount_amount }}</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal after discount:</span>
+                        <strong id="subtotal-after-discount-display">₹{{ subtotal_after_discount }}</strong>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between mb-2">
                         <span>GST (18%):</span>
-                        <strong>₹{{ tax_amount }}</strong>
+                        <strong id="tax-display">₹{{ tax_amount }}</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Security Deposit:</span>
@@ -47,7 +130,7 @@
                     <hr>
                     <div class="d-flex justify-content-between">
                         <h5>Grand Total:</h5>
-                        <h5 class="text-primary">₹{{ grand_total }}</h5>
+                        <h5 class="text-primary" id="grand-total-display">₹{{ grand_total }}</h5>
                     </div>
                     <small class="text-muted">*Security deposit will be refunded on return</small>
                 </div>
@@ -55,4 +138,125 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const applyCouponBtn = document.getElementById('apply-coupon-btn');
+    const removeCouponBtn = document.getElementById('remove-coupon-btn');
+    const couponCodeInput = document.getElementById('coupon-code');
+    const couponMessage = document.getElementById('coupon-message');
+    
+    if (applyCouponBtn) {
+        applyCouponBtn.addEventListener('click', function() {
+            const couponCode = couponCodeInput.value.trim().toUpperCase();
+            
+            if (!couponCode) {
+                showMessage('Please enter a coupon code', 'danger');
+                return;
+            }
+            
+            applyCouponBtn.disabled = true;
+            applyCouponBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Applying...';
+            
+            fetch('{% url "website:validate_coupon" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: 'coupon_code=' + encodeURIComponent(couponCode)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    updatePrices(data);
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showMessage(data.message, 'danger');
+                    applyCouponBtn.disabled = false;
+                    applyCouponBtn.innerHTML = 'Apply';
+                }
+            })
+            .catch(error => {
+                showMessage('Error applying coupon. Please try again.', 'danger');
+                applyCouponBtn.disabled = false;
+                applyCouponBtn.innerHTML = 'Apply';
+            });
+        });
+        
+        // Allow Enter key to apply coupon
+        couponCodeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                applyCouponBtn.click();
+            }
+        });
+    }
+    
+    if (removeCouponBtn) {
+        removeCouponBtn.addEventListener('click', function() {
+            if (!confirm('Remove this coupon?')) return;
+            
+            fetch('{% url "website:remove_coupon" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        });
+    }
+    
+    function showMessage(message, type) {
+        couponMessage.className = `alert alert-${type} mt-2`;
+        couponMessage.textContent = message;
+        couponMessage.style.display = 'block';
+    }
+    
+    function updatePrices(data) {
+        if (data.discount_amount && parseFloat(data.discount_amount) > 0) {
+            document.getElementById('subtotal-display').textContent = '₹' + data.subtotal;
+            document.getElementById('tax-display').textContent = '₹' + data.tax_amount;
+            document.getElementById('grand-total-display').textContent = '₹' + data.grand_total;
+        }
+    }
+    
+    // Delivery method toggle
+    const homeDeliveryRadio = document.getElementById('home_delivery');
+    const pickupRadio = document.getElementById('pickup');
+    const addressFields = document.getElementById('address-fields');
+    const warehouseInfo = document.getElementById('warehouse-info');
+    
+    function toggleDeliveryFields() {
+        if (pickupRadio.checked) {
+            addressFields.style.display = 'none';
+            warehouseInfo.style.display = 'block';
+            // Make address fields optional when pickup is selected
+            document.querySelectorAll('#address-fields input, #address-fields textarea').forEach(input => {
+                input.removeAttribute('required');
+            });
+        } else {
+            addressFields.style.display = 'block';
+            warehouseInfo.style.display = 'none';
+            // Make address fields required when home delivery is selected
+            document.querySelector('[name="delivery_address"]').setAttribute('required', 'required');
+            document.querySelector('[name="delivery_city"]').setAttribute('required', 'required');
+            document.querySelector('[name="delivery_state"]').setAttribute('required', 'required');
+            document.querySelector('[name="delivery_pincode"]').setAttribute('required', 'required');
+        }
+    }
+    
+    homeDeliveryRadio.addEventListener('change', toggleDeliveryFields);
+    pickupRadio.addEventListener('change', toggleDeliveryFields);
+    
+    // Initial state
+    toggleDeliveryFields();
+});
+</script>
 {% endblock %}

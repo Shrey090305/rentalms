@@ -25,4 +25,10 @@ urlpatterns = [
     # Invoice & Payment
     path('orders/<int:order_id>/invoice/', views.invoice_manage, name='invoice_manage'),
     path('invoice/<int:invoice_id>/payment/', views.record_payment, name='record_payment'),
+    
+    # Reports
+    path('reports/', views.reports_dashboard, name='reports_dashboard'),
+    path('reports/sales/', views.sales_report, name='sales_report'),
+    path('reports/products/', views.product_report, name='product_report'),
+    path('reports/revenue/', views.revenue_report, name='revenue_report'),
 ]

@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Confirmation - Rental Management{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- Success Message -->
+            <div class="text-center mb-4">
+                <div class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                </div>
+                <h2 class="mb-2">Order Placed Successfully!</h2>
+                <p class="text-muted">Thank you for your order. We've received your rental request.</p>
+            </div>
+
+            {% if orders.count == 1 %}
+                <!-- Single Order -->
+                {% for order in orders %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="card-title">Order Details</h5>
+                                <p class="mb-1"><strong>Order Number:</strong> {{ order.order_number }}</p>
+                                <p class="mb-1"><strong>Status:</strong> 
+                                    <span class="badge bg-warning">{{ order.get_status_display }}</span>
+                                </p>
+                                <p class="mb-1"><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y g:i A" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="card-title">Delivery Address</h5>
+                                <p class="mb-0">
+                                    {{ order.delivery_address }}<br>
+                                    {{ order.delivery_city }}, {{ order.delivery_state }}<br>
+                                    {{ order.delivery_pincode }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <h5 class="mb-3">Order Items</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Rental Period</th>
+                                        <th>Quantity</th>
+                                        <th class="text-end">Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for line in order.lines.all %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ line.product.name }}</strong>
+                                            {% if line.variant %}
+                                            <br><small class="text-muted">{{ line.variant.name }}</small>
+                                            {% endif %}
+                                            <br><small class="text-muted">Vendor: {{ line.product.vendor.get_full_name }}</small>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                {{ line.start_date|date:"M d, Y" }}<br>
+                                                to {{ line.end_date|date:"M d, Y" }}
+                                            </small>
+                                        </td>
+                                        <td>{{ line.quantity }}</td>
+                                        <td class="text-end">₹{{ line.get_total }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {% if order.invoice %}
+                        <div class="row mt-3">
+                            <div class="col-md-6 ms-auto">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td>Subtotal:</td>
+                                        <td class="text-end">₹{{ order.invoice.subtotal }}</td>
+                                    </tr>
+                                    {% if order.invoice.discount_amount > 0 %}
+                                    <tr class="text-success">
+                                        <td>Discount:</td>
+                                        <td class="text-end">-₹{{ order.invoice.discount_amount }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <td>Tax ({{ order.invoice.tax_rate }}%):</td>
+                                        <td class="text-end">₹{{ order.invoice.tax_amount }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Security Deposit:</td>
+                                        <td class="text-end">₹{{ order.invoice.security_deposit }}</td>
+                                    </tr>
+                                    <tr class="fw-bold">
+                                        <td>Total:</td>
+                                        <td class="text-end">₹{{ order.invoice.total_amount }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'website:order_detail' order.pk %}" class="btn btn-outline-primary">
+                                <i class="bi bi-eye"></i> View Order
+                            </a>
+                            {% if order.invoice %}
+                            <a href="{% url 'website:invoice' order.invoice.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-file-earmark-text"></i> View Invoice
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+            {% else %}
+                <!-- Multiple Orders (Vendor-wise Split) -->
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Note:</strong> Your order has been split into {{ orders.count }} separate orders because you ordered products from multiple vendors. Each vendor will process their order independently.
+                </div>
+
+                {% for order in orders %}
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-bag-check"></i> Order {{ order.order_number }}
+                            </h5>
+                            <span class="badge bg-warning">{{ order.get_status_display }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <h6 class="text-muted">Products from: 
+                                    <strong>{{ order.lines.first.product.vendor.get_full_name }}</strong>
+                                    {% if order.lines.first.product.vendor.company_name %}
+                                    ({{ order.lines.first.product.vendor.company_name }})
+                                    {% endif %}
+                                </h6>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Rental Period</th>
+                                        <th>Qty</th>
+                                        <th class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for line in order.lines.all %}
+                                    <tr>
+                                        <td>
+                                            {{ line.product.name }}
+                                            {% if line.variant %}
+                                            <br><small class="text-muted">{{ line.variant.name }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small>
+                                                {{ line.start_date|date:"M d" }} - {{ line.end_date|date:"M d, Y" }}
+                                            </small>
+                                        </td>
+                                        <td>{{ line.quantity }}</td>
+                                        <td class="text-end">₹{{ line.get_total }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {% if order.invoice %}
+                        <div class="row">
+                            <div class="col-md-5 ms-auto">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td>Subtotal:</td>
+                                        <td class="text-end">₹{{ order.invoice.subtotal }}</td>
+                                    </tr>
+                                    {% if order.invoice.discount_amount > 0 %}
+                                    <tr class="text-success">
+                                        <td>Discount:</td>
+                                        <td class="text-end">-₹{{ order.invoice.discount_amount }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <td>Tax:</td>
+                                        <td class="text-end">₹{{ order.invoice.tax_amount }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Security Deposit:</td>
+                                        <td class="text-end">₹{{ order.invoice.security_deposit }}</td>
+                                    </tr>
+                                    <tr class="fw-bold border-top">
+                                        <td>Total:</td>
+                                        <td class="text-end">₹{{ order.invoice.total_amount }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'website:order_detail' order.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                            {% if order.invoice %}
+                            <a href="{% url 'website:invoice' order.invoice.pk %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-file-earmark-text"></i> Invoice
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Summary Card -->
+                <div class="card shadow-sm border-success">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">
+                            <i class="bi bi-check-circle"></i> Order Summary
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Total Orders:</strong> {{ orders.count }}</p>
+                                <p class="mb-1"><strong>Total Items:</strong> 
+                                    {% widthratio orders|length 1 1 as order_count %}
+                                    {{ orders.0.lines.count|add:orders.1.lines.count|default:orders.0.lines.count }}
+                                </p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p class="mb-1"><strong>Grand Total:</strong></p>
+                                <h4 class="text-success mb-0">
+                                    ₹{% widthratio orders.0.invoice.total_amount 1 1 as total1 %}
+                                    {% if orders.1.invoice %}
+                                        {% widthratio orders.0.invoice.total_amount|add:orders.1.invoice.total_amount 1 1 as combined_total %}
+                                        {{ combined_total|default:orders.0.invoice.total_amount }}
+                                    {% else %}
+                                        {{ orders.0.invoice.total_amount }}
+                                    {% endif %}
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="text-center mt-4">
+                {% if orders.count == 1 %}
+                    {% if orders.0.invoice %}
+                    <a href="{% url 'website:payment' orders.0.invoice.pk %}" class="btn btn-success btn-lg me-2">
+                        <i class="bi bi-credit-card"></i> Proceed to Payment
+                    </a>
+                    {% endif %}
+                {% else %}
+                    <!-- Multiple orders - show payment options for each -->
+                    <div class="mb-3">
+                        <p class="text-muted">You can pay for each order separately:</p>
+                        <div class="btn-group-vertical" role="group">
+                            {% for order in orders %}
+                                {% if order.invoice %}
+                                <a href="{% url 'website:payment' order.invoice.pk %}" class="btn btn-outline-success mb-2">
+                                    <i class="bi bi-credit-card"></i> Pay for Order {{ order.order_number }} (₹{{ order.invoice.total_amount }})
+                                </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <a href="{% url 'website:my_orders' %}" class="btn btn-primary btn-lg me-2">
+                    <i class="bi bi-list-ul"></i> View All Orders
+                </a>
+                <a href="{% url 'website:product_list' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-arrow-left"></i> Continue Shopping
+                </a>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="card mt-4 border-info">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="bi bi-lightbulb"></i> What's Next?
+                    </h5>
+                    <ul class="mb-0">
+                        <li>You will receive order confirmation emails for each order</li>
+                        <li>Each vendor will process their order independently</li>
+                        <li>You can track your order status in "My Orders" section</li>
+                        <li>Payment details and pickup instructions will be sent separately</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -12,7 +12,9 @@ class User(AbstractUser):
     ]
     
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
+    profile_pic = models.ImageField(upload_to='profile_pics/', blank=True, null=True, help_text='Profile picture')
     company_name = models.CharField(max_length=200, blank=True)
+    company_logo = models.ImageField(upload_to='company_logos/', blank=True, null=True, help_text='Company logo for invoices (recommended: 200x80px)')
     gstin = models.CharField(max_length=15, blank=True, help_text='GST Identification Number')
     phone = models.CharField(max_length=15, blank=True)
     address = models.TextField(blank=True)

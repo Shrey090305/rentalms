@@ -71,6 +71,25 @@
             padding: 0.35em 0.65em;
             font-size: 0.85em;
         }
+        
+        .navbar-profile-pic {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+            margin-right: 8px;
+        }
+        
+        .navbar-company-logo {
+            height: 28px;
+            max-width: 80px;
+            object-fit: contain;
+            margin-right: 8px;
+            background: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -107,6 +126,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'rental:order_manage' %}">Manage Orders</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'rental:reports_dashboard' %}">Reports</a>
+                            </li>
                         {% endif %}
                     {% endif %}
                 </ul>
@@ -123,8 +145,21 @@
                             </li>
                         {% endif %}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle"></i> {{ user.username }}
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                {% if user.role == 'customer' %}
+                                    {% if user.profile_pic %}
+                                        <img src="{{ user.profile_pic.url }}" alt="{{ user.username }}" class="navbar-profile-pic">
+                                    {% else %}
+                                        <i class="bi bi-person-circle me-1"></i>
+                                    {% endif %}
+                                {% else %}
+                                    {% if user.company_logo %}
+                                        <img src="{{ user.company_logo.url }}" alt="{{ user.company_name }}" class="navbar-company-logo">
+                                    {% else %}
+                                        <i class="bi bi-building me-1"></i>
+                                    {% endif %}
+                                {% endif %}
+                                {{ user.username }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Profile</a></li>
@@ -178,8 +213,10 @@
                 <div class="col-md-4">
                     <h6>Quick Links</h6>
                     <ul class="list-unstyled">
-                        <li><a href="{% url 'website:home' %}" class="text-decoration-none">Home</a></li>
-                        <li><a href="{% url 'website:product_list' %}" class="text-decoration-none">Products</a></li>
+                        <li><a href="{% url 'website:home' %}" class="text-decoration-none text-muted">Home</a></li>
+                        <li><a href="{% url 'website:product_list' %}" class="text-decoration-none text-muted">Products</a></li>
+                        <li><a href="{% url 'website:about' %}" class="text-decoration-none text-muted">About Us</a></li>
+                        <li><a href="{% url 'website:terms' %}" class="text-decoration-none text-muted">Terms & Conditions</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4">

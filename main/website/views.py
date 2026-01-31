@@ -2,9 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
+from django.http import JsonResponse
 from decimal import Decimal
 from rental.models import Product, Quotation, QuotationLine, RentalOrder, OrderLine
 from rental.forms import AddToCartForm, CheckoutForm
+from .models import Coupon, CouponUsage
 
 
 def home(request):
@@ -22,25 +24,47 @@ def home(request):
 
 def product_list(request):
     """Product listing page with search/filter"""
-    products = Product.objects.filter(publish_on_website=True, is_rentable=True)
+    from rental.models import Category
     
-    # Search
-    query = request.GET.get('q')
+    products = Product.objects.filter(publish_on_website=True, is_rentable=True)
+    categories = Category.objects.filter(is_active=True)
+    
+    # Category filter
+    category_slug = request.GET.get('category')
+    selected_category = None
+    if category_slug:
+        try:
+            selected_category = Category.objects.get(slug=category_slug, is_active=True)
+            products = products.filter(category=selected_category)
+        except Category.DoesNotExist:
+            pass
+    
+    # Search - only search in name by default for more accurate results
+    query = request.GET.get('q', '').strip()
     if query:
-        products = products.filter(
-            Q(name__icontains=query) | Q(description__icontains=query)
-        )
+        # Primary search: exact name matches or starts with query
+        products = products.filter(name__icontains=query)
     
     # Price filter
-    min_price = request.GET.get('min_price')
-    max_price = request.GET.get('max_price')
+    min_price = request.GET.get('min_price', '').strip()
+    max_price = request.GET.get('max_price', '').strip()
+    
     if min_price:
-        products = products.filter(price_per_day__gte=min_price)
+        try:
+            products = products.filter(price_per_day__gte=Decimal(min_price))
+        except (ValueError, TypeError):
+            pass
+    
     if max_price:
-        products = products.filter(price_per_day__lte=max_price)
+        try:
+            products = products.filter(price_per_day__lte=Decimal(max_price))
+        except (ValueError, TypeError):
+            pass
     
     context = {
         'products': products,
+        'categories': categories,
+        'selected_category': selected_category,
         'query': query,
     }
     return render(request, 'website/product_list.html', context)
@@ -101,6 +125,8 @@ def cart_view(request):
         status='draft'
     ).first()
     
+    
+
     if not cart:
         messages.info(request, 'Your cart is empty.')
         return redirect('website:product_list')
@@ -139,59 +165,165 @@ def checkout_view(request):
         messages.error(request, 'Your cart is empty.')
         return redirect('website:product_list')
     
+    # Initialize discount variables
+    discount_amount = Decimal('0.00')
+    applied_coupon = None
+    
+    # Check if coupon is in session
+    if 'applied_coupon_code' in request.session:
+        try:
+            coupon = Coupon.objects.get(code=request.session['applied_coupon_code'])
+            can_use, message = coupon.can_be_used_by(request.user)
+            if can_use:
+                applied_coupon = coupon
+                subtotal = cart.get_total()
+                discount_amount = (subtotal * coupon.discount_percentage / 100).quantize(Decimal('0.01'))
+        except Coupon.DoesNotExist:
+            del request.session['applied_coupon_code']
+    
+    # Calculate totals with discount
+    subtotal = cart.get_total()
+    subtotal_after_discount = subtotal - discount_amount
+    tax_amount = (subtotal_after_discount * Decimal('18.00') / 100).quantize(Decimal('0.01'))
+    security_deposit = Decimal('1000.00')
+    grand_total = subtotal_after_discount + tax_amount + security_deposit
+    
     if request.method == 'POST':
         form = CheckoutForm(request.POST, user=request.user)
         if form.is_valid():
-            # Create rental order
-            order = form.save(commit=False)
-            order.customer = request.user
-            order.quotation = cart
-            order.status = 'pending'
-            order.save()
-            
-            # Copy quotation lines to order lines
+            # Group cart lines by vendor
+            from collections import defaultdict
+            vendor_lines = defaultdict(list)
             for line in cart.lines.all():
-                OrderLine.objects.create(
+                vendor_lines[line.product.vendor].append(line)
+            
+            created_orders = []
+            total_discount_distributed = Decimal('0.00')
+            
+            # Calculate discount per vendor proportionally
+            if discount_amount > 0:
+                vendor_subtotals = {}
+                for vendor, lines in vendor_lines.items():
+                    vendor_subtotal = sum(line.get_total() for line in lines)
+                    vendor_subtotals[vendor] = vendor_subtotal
+            
+            # Create separate order and invoice for each vendor
+            for vendor, lines in vendor_lines.items():
+                # Create rental order for this vendor
+                order = RentalOrder()
+                order.customer = request.user
+                order.quotation = None  # Will link to original cart in first order only
+                order.status = 'pending'
+                order.delivery_method = form.cleaned_data['delivery_method']
+                order.delivery_address = form.cleaned_data.get('delivery_address', '')
+                order.delivery_city = form.cleaned_data.get('delivery_city', '')
+                order.delivery_state = form.cleaned_data.get('delivery_state', '')
+                order.delivery_pincode = form.cleaned_data.get('delivery_pincode', '')
+                order.notes = form.cleaned_data.get('notes', '')
+                order.save()
+                
+                # Copy quotation lines to order lines for this vendor
+                vendor_subtotal = Decimal('0.00')
+                for line in lines:
+                    OrderLine.objects.create(
+                        order=order,
+                        product=line.product,
+                        variant=line.variant,
+                        quantity=line.quantity,
+                        start_date=line.start_date,
+                        end_date=line.end_date,
+                        unit_price=line.unit_price
+                    )
+                    vendor_subtotal += line.get_total()
+                    
+                    # Reduce product quantity
+                    line.product.quantity_on_hand -= line.quantity
+                    line.product.save()
+                
+                # Calculate proportional discount for this vendor
+                vendor_discount = Decimal('0.00')
+                if discount_amount > 0 and subtotal > 0:
+                    discount_ratio = vendor_subtotal / subtotal
+                    vendor_discount = (discount_amount * discount_ratio).quantize(Decimal('0.01'))
+                    total_discount_distributed += vendor_discount
+                
+                # Adjust last vendor's discount to account for rounding
+                if vendor == list(vendor_lines.keys())[-1]:
+                    vendor_discount += (discount_amount - total_discount_distributed)
+                
+                # Calculate vendor-specific amounts
+                vendor_subtotal_after_discount = vendor_subtotal - vendor_discount
+                vendor_tax = (vendor_subtotal_after_discount * Decimal('18.00') / 100).quantize(Decimal('0.01'))
+                
+                # Security deposit split proportionally
+                vendor_security_deposit = Decimal('0.00')
+                if security_deposit > 0 and subtotal > 0:
+                    deposit_ratio = vendor_subtotal / subtotal
+                    vendor_security_deposit = (security_deposit * deposit_ratio).quantize(Decimal('0.01'))
+                
+                vendor_total = vendor_subtotal_after_discount + vendor_tax + vendor_security_deposit
+                
+                # Create invoice for this vendor's order
+                from rental.models import Invoice
+                invoice = Invoice.objects.create(
                     order=order,
-                    product=line.product,
-                    variant=line.variant,
-                    quantity=line.quantity,
-                    start_date=line.start_date,
-                    end_date=line.end_date,
-                    unit_price=line.unit_price
+                    subtotal=vendor_subtotal,
+                    discount_amount=vendor_discount,
+                    tax_rate=Decimal('18.00'),
+                    tax_amount=vendor_tax,
+                    security_deposit=vendor_security_deposit,
+                    total_amount=vendor_total
                 )
                 
-                # Reduce product quantity
-                line.product.quantity_on_hand -= line.quantity
-                line.product.save()
+                created_orders.append(order)
+            
+            # Link first order to quotation
+            if created_orders:
+                created_orders[0].quotation = cart
+                created_orders[0].save()
             
             # Mark quotation as confirmed
             cart.status = 'confirmed'
             cart.save()
             
-            # Create invoice
-            from rental.models import Invoice
-            invoice = Invoice.objects.create(
-                order=order,
-                subtotal=order.get_total(),
-                tax_rate=Decimal('18.00'),
-                tax_amount=order.get_tax_amount(),
-                security_deposit=Decimal('1000.00'),  # Default security deposit
-                total_amount=order.get_grand_total() + Decimal('1000.00')
-            )
+            # Record coupon usage if applied (link to first order)
+            if applied_coupon and created_orders:
+                CouponUsage.objects.create(
+                    coupon=applied_coupon,
+                    user=request.user,
+                    order=created_orders[0],
+                    discount_amount=discount_amount
+                )
+                applied_coupon.times_used += 1
+                applied_coupon.save()
+                # Clear coupon from session
+                del request.session['applied_coupon_code']
             
-            messages.success(request, f'Order {order.order_number} created successfully!')
-            return redirect('website:order_detail', pk=order.pk)
+            # Store order IDs and invoice IDs in session for confirmation page
+            request.session['created_order_ids'] = [order.id for order in created_orders]
+            
+            if len(created_orders) == 1:
+                messages.success(request, f'Order {created_orders[0].order_number} created successfully!')
+            else:
+                order_numbers = ', '.join([o.order_number for o in created_orders])
+                messages.success(request, f'{len(created_orders)} orders created successfully: {order_numbers}')
+            
+            # Redirect to payment page for first invoice
+            first_invoice = created_orders[0].invoice
+            return redirect('website:payment', invoice_id=first_invoice.pk)
     else:
         form = CheckoutForm(user=request.user)
     
     context = {
         'cart': cart,
         'form': form,
-        'subtotal': cart.get_total(),
-        'tax_amount': cart.get_tax_amount(),
-        'security_deposit': Decimal('1000.00'),
-        'grand_total': cart.get_grand_total() + Decimal('1000.00'),
+        'subtotal': subtotal,
+        'discount_amount': discount_amount,
+        'applied_coupon': applied_coupon,
+        'subtotal_after_discount': subtotal_after_discount,
+        'tax_amount': tax_amount,
+        'security_deposit': security_deposit,
+        'grand_total': grand_total,
     }
     return render(request, 'website/checkout.html', context)
 
@@ -225,6 +357,27 @@ def order_detail(request, pk):
 
 
 @login_required
+def order_success(request):
+    """Order success page showing all created orders"""
+    order_ids = request.session.get('created_order_ids', [])
+    
+    if not order_ids:
+        messages.info(request, 'No recent orders found.')
+        return redirect('website:my_orders')
+    
+    orders = RentalOrder.objects.filter(id__in=order_ids, customer=request.user)
+    
+    # Clear session
+    if 'created_order_ids' in request.session:
+        del request.session['created_order_ids']
+    
+    context = {
+        'orders': orders,
+    }
+    return render(request, 'website/order_success.html', context)
+
+
+@login_required
 def invoice_view(request, pk):
     """Invoice detail/download"""
     from rental.models import Invoice
@@ -238,18 +391,26 @@ def invoice_view(request, pk):
 
 @login_required
 def invoice_pdf_download(request, pk):
-    """Download invoice as PDF"""
+    """Download invoice as PDF with vendor logo"""
     from rental.models import Invoice
     from django.http import HttpResponse
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.units import inch
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.enums import TA_CENTER, TA_RIGHT
     import io
+    import os
+    from django.conf import settings
     
     invoice = get_object_or_404(Invoice, pk=pk, order__customer=request.user)
+    
+    # Get vendor from first product in order
+    vendor = None
+    first_line = invoice.order.lines.first()
+    if first_line and first_line.product:
+        vendor = first_line.product.vendor
     
     # Create PDF buffer
     buffer = io.BytesIO()
@@ -276,8 +437,31 @@ def invoice_pdf_download(request, pk):
         spaceAfter=12,
     )
     
-    # Title
-    elements.append(Paragraph("RentEase - Rental Management System", title_style))
+    # Add vendor logo if available
+    if vendor and vendor.company_logo:
+        try:
+            logo_path = os.path.join(settings.MEDIA_ROOT, str(vendor.company_logo))
+            if os.path.exists(logo_path):
+                logo = Image(logo_path, width=2*inch, height=0.8*inch, kind='proportional')
+                logo.hAlign = 'LEFT'
+                elements.append(logo)
+                elements.append(Spacer(1, 12))
+        except Exception as e:
+            pass  # Continue without logo if there's an error
+    
+    # Vendor Company Name or RentEase title
+    if vendor and vendor.company_name:
+        vendor_title_style = ParagraphStyle(
+            'VendorTitle',
+            parent=styles['Heading1'],
+            fontSize=20,
+            textColor=colors.HexColor('#0d6efd'),
+            spaceAfter=12,
+        )
+        elements.append(Paragraph(vendor.company_name, vendor_title_style))
+    else:
+        elements.append(Paragraph("RentEase - Rental Management System", title_style))
+    
     elements.append(Spacer(1, 12))
     
     # Invoice Header
@@ -311,9 +495,14 @@ def invoice_pdf_download(request, pk):
     
     # Order Details
     elements.append(Paragraph("Order Details:", heading_style))
+    
+    # Delivery method display
+    delivery_method_display = "Home Delivery" if invoice.order.delivery_method == 'home_delivery' else "Pickup from Warehouse"
+    
     order_info = f"""
     Order #: {invoice.order.order_number}<br/>
     Order Date: {invoice.order.created_at.strftime("%b %d, %Y")}<br/>
+    Delivery Method: <b>{delivery_method_display}</b><br/>
     Order Status: {invoice.order.get_status_display()}
     """
     elements.append(Paragraph(order_info, styles['Normal']))
@@ -460,8 +649,114 @@ def payment_success(request, invoice_id):
     from rental.models import Invoice
     invoice = get_object_or_404(Invoice, pk=invoice_id, order__customer=request.user)
     
+    # Check for other unpaid invoices from the same checkout session
+    created_order_ids = request.session.get('created_order_ids', [])
+    other_invoices = []
+    if created_order_ids:
+        from rental.models import RentalOrder
+        for order_id in created_order_ids:
+            try:
+                order = RentalOrder.objects.get(pk=order_id, customer=request.user)
+                if hasattr(order, 'invoice') and order.invoice.pk != invoice.pk:
+                    if not order.invoice.is_fully_paid():
+                        other_invoices.append(order.invoice)
+            except RentalOrder.DoesNotExist:
+                pass
+    
     context = {
         'invoice': invoice,
+        'other_invoices': other_invoices,
     }
     return render(request, 'website/payment_success.html', context)
 
+
+@login_required
+def validate_coupon(request):
+    """AJAX endpoint to validate and apply coupon"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'})
+    
+    if request.user.role != 'customer':
+        return JsonResponse({'success': False, 'message': 'Only customers can use coupons'})
+    
+    coupon_code = request.POST.get('coupon_code', '').strip().upper()
+    
+    if not coupon_code:
+        return JsonResponse({'success': False, 'message': 'Please enter a coupon code'})
+    
+    try:
+        coupon = Coupon.objects.get(code=coupon_code)
+    except Coupon.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Invalid coupon code'})
+    
+    # Check if user can use this coupon
+    can_use, message = coupon.can_be_used_by(request.user)
+    
+    if not can_use:
+        return JsonResponse({'success': False, 'message': message})
+    
+    # Get cart to calculate discount
+    try:
+        cart = Quotation.objects.get(customer=request.user, status='draft')
+        subtotal = cart.get_total()
+        discount_amount = (subtotal * coupon.discount_percentage / 100).quantize(Decimal('0.01'))
+        subtotal_after_discount = subtotal - discount_amount
+        tax_amount = (subtotal_after_discount * Decimal('18.00') / 100).quantize(Decimal('0.01'))
+        security_deposit = Decimal('1000.00')
+        grand_total = subtotal_after_discount + tax_amount + security_deposit
+        
+        # Store coupon in session
+        request.session['applied_coupon_code'] = coupon_code
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Coupon {coupon_code} applied successfully! You saved ₹{discount_amount}',
+            'discount_amount': str(discount_amount),
+            'discount_percentage': str(coupon.discount_percentage),
+            'subtotal': str(subtotal),
+            'subtotal_after_discount': str(subtotal_after_discount),
+            'tax_amount': str(tax_amount),
+            'grand_total': str(grand_total),
+        })
+    except Quotation.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'No cart found'})
+
+
+@login_required
+def remove_coupon(request):
+    """AJAX endpoint to remove applied coupon"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'})
+    
+    if 'applied_coupon_code' in request.session:
+        del request.session['applied_coupon_code']
+    
+    # Recalculate totals without coupon
+    try:
+        cart = Quotation.objects.get(customer=request.user, status='draft')
+        subtotal = cart.get_total()
+        tax_amount = (subtotal * Decimal('18.00') / 100).quantize(Decimal('0.01'))
+        security_deposit = Decimal('1000.00')
+        grand_total = subtotal + tax_amount + security_deposit
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Coupon removed',
+            'subtotal': str(subtotal),
+            'subtotal_after_discount': str(subtotal),
+            'discount_amount': '0.00',
+            'tax_amount': str(tax_amount),
+            'grand_total': str(grand_total),
+        })
+    except Quotation.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'No cart found'})
+
+
+def about(request):
+    """About Us page"""
+    return render(request, 'website/about.html')
+
+
+def terms(request):
+    """Terms and Conditions page"""
+    return render(request, 'website/terms.html')

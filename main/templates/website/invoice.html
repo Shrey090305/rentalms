@@ -75,6 +75,12 @@
                         <td colspan="4" class="text-end"><strong>Subtotal:</strong></td>
                         <td class="text-end">₹{{ invoice.subtotal }}</td>
                     </tr>
+                    {% if invoice.discount_amount > 0 %}
+                    <tr>
+                        <td colspan="4" class="text-end text-success"><strong>Coupon Discount (10%):</strong></td>
+                        <td class="text-end text-success">-₹{{ invoice.discount_amount }}</td>
+                    </tr>
+                    {% endif %}
                     <tr>
                         <td colspan="4" class="text-end"><strong>GST ({{ invoice.tax_rate }}%):</strong></td>
                         <td class="text-end">₹{{ invoice.tax_amount }}</td>

@@ -2,8 +2,30 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.utils.text import slugify
 from decimal import Decimal
 import json
+
+
+class Category(models.Model):
+    """Product categories like Electronics, Furniture, Sports, etc."""
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True, blank=True)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        ordering = ['name']
+        verbose_name_plural = 'Categories'
 
 
 class ProductAttribute(models.Model):
@@ -33,6 +55,7 @@ class AttributeValue(models.Model):
 class Product(models.Model):
     """Main product model"""
     vendor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='products')
+    category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
@@ -197,16 +220,22 @@ class RentalOrder(models.Model):
         ('cancelled', 'Cancelled'),
     ]
     
+    DELIVERY_METHOD_CHOICES = [
+        ('home_delivery', 'Home Delivery'),
+        ('pickup', 'Pickup from Warehouse'),
+    ]
+    
     quotation = models.OneToOneField(Quotation, on_delete=models.SET_NULL, null=True, blank=True)
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     order_number = models.CharField(max_length=50, unique=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     # Delivery info
-    delivery_address = models.TextField()
-    delivery_city = models.CharField(max_length=100)
-    delivery_state = models.CharField(max_length=100)
-    delivery_pincode = models.CharField(max_length=10)
+    delivery_method = models.CharField(max_length=20, choices=DELIVERY_METHOD_CHOICES, default='home_delivery', help_text='How would you like to receive the product?')
+    delivery_address = models.TextField(blank=True)
+    delivery_city = models.CharField(max_length=100, blank=True)
+    delivery_state = models.CharField(max_length=100, blank=True)
+    delivery_pincode = models.CharField(max_length=10, blank=True)
     
     notes = models.TextField(blank=True)
     
@@ -233,6 +262,46 @@ class RentalOrder(models.Model):
     
     def get_grand_total(self, tax_rate=18):
         return self.get_total() + self.get_tax_amount(tax_rate)
+    
+    def get_latest_return_date(self):
+        """Get the latest return date from all order lines"""
+        return max((line.end_date for line in self.lines.all()), default=None)
+    
+    def has_approaching_return(self):
+        """Check if return date is within 1 day"""
+        if self.status not in ['picked_up', 'rented']:
+            return False
+        
+        latest_return = self.get_latest_return_date()
+        if not latest_return:
+            return False
+        
+        now = timezone.now()
+        time_until_return = latest_return - now
+        
+        # Check if return is within next 24 hours
+        return timezone.timedelta(hours=0) <= time_until_return <= timezone.timedelta(hours=24)
+    
+    def is_return_overdue(self):
+        """Check if return date has passed"""
+        if self.status not in ['picked_up', 'rented']:
+            return False
+        
+        latest_return = self.get_latest_return_date()
+        if not latest_return:
+            return False
+        
+        return timezone.now() > latest_return
+    
+    def get_return_status(self):
+        """Get return status: 'overdue', 'approaching', 'normal', or 'returned'"""
+        if self.status == 'returned':
+            return 'returned'
+        if self.is_return_overdue():
+            return 'overdue'
+        if self.has_approaching_return():
+            return 'approaching'
+        return 'normal'
 
 
 class OrderLine(models.Model):
@@ -335,6 +404,7 @@ class Invoice(models.Model):
     payment_term = models.CharField(max_length=30, choices=PAYMENT_TERM_CHOICES, default='full_upfront')
     
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Coupon discount amount")
     tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=18)  # GST percentage
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2)
     security_deposit = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -360,8 +430,11 @@ class Invoice(models.Model):
         # Calculate totals
         if self.order:
             self.subtotal = self.order.get_total()
-            self.tax_amount = self.subtotal * (self.tax_rate / 100)
-            self.total_amount = self.subtotal + self.tax_amount + self.security_deposit + self.late_fee
+            # Apply discount first
+            subtotal_after_discount = self.subtotal - self.discount_amount
+            # Calculate tax on discounted amount
+            self.tax_amount = subtotal_after_discount * (self.tax_rate / 100)
+            self.total_amount = subtotal_after_discount + self.tax_amount + self.security_deposit + self.late_fee
         
         super().save(*args, **kwargs)
     

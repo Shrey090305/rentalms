@@ -18,7 +18,9 @@ class SignUpForm(UserCreationForm):
         help_text='Select your account type'
     )
     email = forms.EmailField(required=True)
+    profile_pic = forms.ImageField(required=False, help_text='Profile picture')
     company_name = forms.CharField(max_length=200, required=True)
+    company_logo = forms.ImageField(required=False, help_text='Company logo for invoices (recommended: 200x80px)')
     gstin = forms.CharField(
         max_length=15, 
         required=True,
@@ -33,7 +35,7 @@ class SignUpForm(UserCreationForm):
     
     class Meta:
         model = User
-        fields = ['role', 'username', 'email', 'password1', 'password2', 'company_name', 'gstin', 
+        fields = ['role', 'username', 'email', 'password1', 'password2', 'profile_pic', 'company_name', 'company_logo', 'gstin', 
                   'phone', 'address', 'city', 'state', 'pincode']
     
     def __init__(self, *args, **kwargs):
@@ -49,7 +51,11 @@ class SignUpForm(UserCreationForm):
         user = super().save(commit=False)
         user.role = self.cleaned_data['role']  # Use selected role
         user.email = self.cleaned_data['email']
+        if self.cleaned_data.get('profile_pic'):
+            user.profile_pic = self.cleaned_data['profile_pic']
         user.company_name = self.cleaned_data['company_name']
+        if self.cleaned_data.get('company_logo'):
+            user.company_logo = self.cleaned_data['company_logo']
         user.gstin = self.cleaned_data['gstin']
         user.phone = self.cleaned_data['phone']
         user.address = self.cleaned_data.get('address', '')
@@ -67,12 +73,25 @@ class UserProfileForm(forms.ModelForm):
     
     class Meta:
         model = User
-        fields = ['email', 'company_name', 'gstin', 'phone', 'address', 'city', 'state', 'pincode']
+        fields = ['email', 'profile_pic', 'company_name', 'company_logo', 'gstin', 'phone', 'address', 'city', 'state', 'pincode']
         widgets = {
             'address': forms.Textarea(attrs={'rows': 3}),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        user = kwargs.get('instance')
+        
+        # Remove fields based on user role
+        if user:
+            if user.role == 'customer':
+                # Customers don't need company logo
+                if 'company_logo' in self.fields:
+                    del self.fields['company_logo']
+            else:
+                # Vendors/admins don't need profile pic in this form (they can use company logo)
+                if 'profile_pic' in self.fields:
+                    del self.fields['profile_pic']
+        
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control'

@@ -1,10 +1,22 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
-    ProductAttribute, AttributeValue, Product, ProductVariant,
+    Category, ProductAttribute, AttributeValue, Product, ProductVariant,
     Quotation, QuotationLine, RentalOrder, OrderLine,
     Pickup, Return, Invoice, Payment, SystemSettings
 )
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug', 'is_active', 'product_count', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name', 'description']
+    prepopulated_fields = {'slug': ('name',)}
+    
+    def product_count(self, obj):
+        return obj.products.count()
+    product_count.short_description = 'Products'
 
 
 @admin.register(ProductAttribute)
@@ -27,15 +39,15 @@ class ProductVariantInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'vendor', 'quantity_on_hand', 'price_per_day', 'is_rentable', 'publish_on_website']
-    list_filter = ['is_rentable', 'publish_on_website', 'vendor']
+    list_display = ['name', 'category', 'vendor', 'quantity_on_hand', 'price_per_day', 'is_rentable', 'publish_on_website']
+    list_filter = ['category', 'is_rentable', 'publish_on_website', 'vendor']
     search_fields = ['name', 'description']
     filter_horizontal = ['attributes']
     inlines = [ProductVariantInline]
     
     fieldsets = (
         ('Basic Info', {
-            'fields': ('vendor', 'name', 'description', 'image')
+            'fields': ('vendor', 'category', 'name', 'description', 'image')
         }),
         ('Pricing', {
             'fields': ('cost_price', 'sales_price', 'price_per_hour', 'price_per_day', 'price_per_week')

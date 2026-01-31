@@ -9,9 +9,24 @@
         <div class="col-md-3">
             <div class="card">
                 <div class="card-body text-center">
-                    <i class="bi bi-person-circle" style="font-size: 5rem;"></i>
+                    {% if user.role == 'customer' %}
+                        {% if user.profile_pic %}
+                            <img src="{{ user.profile_pic.url }}" alt="Profile Picture" class="img-fluid rounded-circle mb-3" style="max-height: 120px; max-width: 120px;">
+                        {% else %}
+                            <i class="bi bi-person-circle" style="font-size: 5rem;"></i>
+                        {% endif %}
+                    {% else %}
+                        {% if user.company_logo %}
+                            <img src="{{ user.company_logo.url }}" alt="Company Logo" class="img-fluid mb-3" style="max-height: 100px;">
+                        {% else %}
+                            <i class="bi bi-building" style="font-size: 5rem;"></i>
+                        {% endif %}
+                    {% endif %}
                     <h5 class="mt-3">{{ user.username }}</h5>
                     <span class="badge bg-primary">{{ user.get_role_display }}</span>
+                    {% if user.company_name %}
+                        <p class="text-muted mt-2 small">{{ user.company_name }}</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -21,7 +36,7 @@
                     <h4><i class="bi bi-pencil-square"></i> Edit Profile</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         {% bootstrap_form form %}
                         

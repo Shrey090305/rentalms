@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Revenue Report{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin-bottom: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Revenue Report</h2>
+            <p class="text-muted">Financial overview and payment analysis</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'rental:reports_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- Financial Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Invoiced</h6>
+                    <h3 class="text-primary">₹{{ total_invoiced|floatformat:2 }}</h3>
+                    <small class="text-muted">All time revenue</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Paid</h6>
+                    <h3 class="text-success">₹{{ total_paid|floatformat:2 }}</h3>
+                    <small class="text-muted">Collected payments</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Pending</h6>
+                    <h3 class="text-warning">₹{{ total_pending|floatformat:2 }}</h3>
+                    <small class="text-muted">Outstanding amount</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collection Rate -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6>Payment Collection Rate</h6>
+            <div class="progress" style="height: 30px;">
+                <div class="progress-bar bg-success" role="progressbar" 
+                     style="width: {{ collection_rate }}%">
+                    {{ collection_rate|floatformat:1 }}% Collected
+                </div>
+            </div>
+            <small class="text-muted mt-1">Based on total invoiced amount</small>
+        </div>
+    </div>
+
+    <!-- Monthly Revenue Trend -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Monthly Revenue Trend (Last 12 Months)</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="monthlyRevenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue by Payment Method -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Revenue by Payment Method</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="paymentMethodChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Payment Method</th>
+                                <th>Count</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for method in payment_methods %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {{ method.payment_method|default:"Pending" }}
+                                    </span>
+                                </td>
+                                <td>{{ method.count }}</td>
+                                <td>₹{{ method.total|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center">No payment data available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue by Category -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Revenue by Product Category</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="categoryRevenueChart"></canvas>
+            </div>
+            <div class="table-responsive mt-3">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Orders</th>
+                            <th>Revenue</th>
+                            <th>Avg Order Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in category_revenue %}
+                        <tr>
+                            <td>{{ cat.category__name|default:"Uncategorized" }}</td>
+                            <td>{{ cat.order_count }}</td>
+                            <td>₹{{ cat.revenue|floatformat:2 }}</td>
+                            <td>₹{{ cat.avg_value|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">No category data available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Monthly Revenue Trend Chart
+const monthlyRevenueCtx = document.getElementById('monthlyRevenueChart').getContext('2d');
+const monthlyRevenueChart = new Chart(monthlyRevenueCtx, {
+    type: 'line',
+    data: {
+        labels: {{ monthly_labels|safe }},
+        datasets: [
+            {
+                label: 'Invoiced',
+                data: {{ monthly_invoiced|safe }},
+                borderColor: 'rgb(54, 162, 235)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                fill: true
+            },
+            {
+                label: 'Paid',
+                data: {{ monthly_paid|safe }},
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Amount (₹)'
+                }
+            }
+        }
+    }
+});
+
+// Payment Method Chart
+const paymentMethodCtx = document.getElementById('paymentMethodChart').getContext('2d');
+const paymentMethodChart = new Chart(paymentMethodCtx, {
+    type: 'pie',
+    data: {
+        labels: {{ payment_method_labels|safe }},
+        datasets: [{
+            data: {{ payment_method_amounts|safe }},
+            backgroundColor: [
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 206, 86, 0.8)',
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(153, 102, 255, 0.8)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Category Revenue Chart
+const categoryRevenueCtx = document.getElementById('categoryRevenueChart').getContext('2d');
+const categoryRevenueChart = new Chart(categoryRevenueCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ category_revenue_labels|safe }},
+        datasets: [{
+            label: 'Revenue (₹)',
+            data: {{ category_revenue_amounts|safe }},
+            backgroundColor: 'rgba(75, 192, 192, 0.8)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Revenue (₹)'
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

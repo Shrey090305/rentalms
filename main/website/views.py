@@ -397,6 +397,7 @@ def invoice_pdf_download(request, pk):
 def payment_view(request, invoice_id):
     """Razorpay payment page (dummy mode)"""
     from rental.models import Invoice, Payment
+    from .email_utils import send_payment_confirmation_email
     import random
     invoice = get_object_or_404(Invoice, pk=invoice_id, order__customer=request.user)
     
@@ -423,6 +424,11 @@ def payment_view(request, invoice_id):
             order = invoice.order
             order.status = 'confirmed'
             order.save()
+            
+            # Send confirmation email with invoice
+            email_sent = send_payment_confirmation_email(invoice)
+            if email_sent:
+                messages.success(request, 'Confirmation email sent to your registered email address.')
         
         return redirect('website:payment_success', invoice_id=invoice.pk)
     

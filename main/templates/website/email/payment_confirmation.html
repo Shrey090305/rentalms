@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #0d6efd;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            background-color: #f8f9fa;
+            padding: 30px;
+            border: 1px solid #dee2e6;
+        }
+        .success-icon {
+            text-align: center;
+            font-size: 60px;
+            color: #198754;
+            margin: 20px 0;
+        }
+        .info-box {
+            background-color: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #0d6efd;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #0d6efd;
+        }
+        .rental-item {
+            background-color: #fff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .rental-item h4 {
+            margin: 0 0 10px 0;
+            color: #0d6efd;
+        }
+        .rental-period {
+            background-color: #e7f3ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .amount {
+            font-size: 24px;
+            color: #198754;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 0 0 8px 8px;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        table {
+            width: 100%;
+            margin: 10px 0;
+        }
+        table td {
+            padding: 5px;
+        }
+        .label {
+            font-weight: bold;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎉 Payment Successful!</h1>
+    </div>
+    
+    <div class="content">
+        <div class="success-icon">✓</div>
+        
+        <p>Dear <strong>{{ customer.company_name }}</strong>,</p>
+        
+        <p>Thank you for your payment! We're pleased to confirm that your payment has been successfully processed.</p>
+        
+        <!-- Payment Summary -->
+        <div class="info-box">
+            <h3>Payment Summary</h3>
+            <table>
+                <tr>
+                    <td class="label">Invoice Number:</td>
+                    <td><strong>{{ invoice.invoice_number }}</strong></td>
+                </tr>
+                <tr>
+                    <td class="label">Order Number:</td>
+                    <td><strong>{{ invoice.order.order_number }}</strong></td>
+                </tr>
+                <tr>
+                    <td class="label">Payment Date:</td>
+                    <td>{{ invoice.paid_at|date:"F d, Y at h:i A" }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Payment Method:</td>
+                    <td>{{ invoice.payments.last.get_payment_method_display }}</td>
+                </tr>
+            </table>
+            <div class="amount">Amount Paid: Rs. {{ invoice.amount_paid }}</div>
+        </div>
+        
+        <!-- Rental Items and Period -->
+        <div class="info-box">
+            <h3>📦 Rental Details</h3>
+            <p>You have rented the following items:</p>
+            
+            {% for item in rental_items %}
+            <div class="rental-item">
+                <h4>{{ item.product }}</h4>
+                <table>
+                    <tr>
+                        <td class="label">Quantity:</td>
+                        <td>{{ item.quantity }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Amount:</td>
+                        <td><strong>Rs. {{ item.amount }}</strong></td>
+                    </tr>
+                </table>
+                
+                <div class="rental-period">
+                    <strong>📅 Rental Period:</strong><br>
+                    <strong>From:</strong> {{ item.start_date }}<br>
+                    <strong>To:</strong> {{ item.end_date }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Important Information -->
+        <div class="info-box">
+            <h3>⚠️ Important Information</h3>
+            <ul>
+                <li>Please keep this email and the attached invoice for your records</li>
+                <li>Ensure items are returned by the end date to avoid late fees</li>
+                <li>Security deposit will be refunded after successful return</li>
+                <li>Contact us immediately if you need to extend the rental period</li>
+            </ul>
+        </div>
+        
+        <p style="text-align: center; margin-top: 30px;">
+            <strong>Need help?</strong> Contact us at:<br>
+            📧 info@rentease.com | 📞 +91 1234567890
+        </p>
+    </div>
+    
+    <div class="footer">
+        <p><strong>RentEase - Rental Management System</strong></p>
+        <p>This is an automated email. Please do not reply to this message.</p>
+        <p>&copy; 2026 RentEase. All rights reserved.</p>
+    </div>
+</body>
+</html>

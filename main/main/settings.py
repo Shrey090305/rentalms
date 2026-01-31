@@ -161,8 +161,21 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'website:home'
 LOGOUT_REDIRECT_URL = 'website:home'
 
-# Email Configuration (for development - prints to console)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email Configuration - SMTP (Gmail)
+# Try port 465 with SSL if 587 doesn't work
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 465  # Changed from 587
+EMAIL_USE_SSL = True  # Changed from TLS to SSL
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = 'shreygohel09@gmail.com'
+EMAIL_HOST_PASSWORD = 'hyxsnsfksdijkvgr'
+DEFAULT_FROM_EMAIL = 'shreygohel09@gmail.com'
+EMAIL_SUBJECT_PREFIX = '[RentEase] '
+EMAIL_TIMEOUT = 30  # Timeout in seconds
+
+# For development/testing (prints to console instead of sending):
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Session settings
 SESSION_COOKIE_AGE = 86400  # 1 day

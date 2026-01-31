@@ -6,21 +6,110 @@
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-body p-5">
                     <h2 class="card-title text-center mb-4">
                         <i class="bi bi-person-plus"></i> Create Account
                     </h2>
-                    <p class="text-center text-muted mb-4">Join RentEase as a Customer</p>
+                    <p class="text-center text-muted mb-4">Join RentEase today</p>
                     
                     <form method="post">
                         {% csrf_token %}
-                        {% bootstrap_form form %}
+                        
+                        <!-- Account Type Selection -->
+                        <div class="mb-4 p-4 bg-light rounded">
+                            <label class="form-label fw-bold mb-3">
+                                <i class="bi bi-person-badge"></i> Account Type *
+                            </label>
+                            <div class="row">
+                                {% for value, label in form.role.field.choices %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" 
+                                               name="role" id="role_{{ value }}" 
+                                               value="{{ value }}" 
+                                               {% if value == 'customer' %}checked{% endif %}>
+                                        <label class="form-check-label fw-bold" for="role_{{ value }}">
+                                            {% if value == 'customer' %}
+                                                <i class="bi bi-cart3 text-primary"></i> {{ label }}
+                                            {% else %}
+                                                <i class="bi bi-shop text-success"></i> {{ label }}
+                                            {% endif %}
+                                        </label>
+                                        <small class="d-block text-muted ms-4">
+                                            {% if value == 'customer' %}
+                                                Browse and rent products from vendors
+                                            {% else %}
+                                                List your products for others to rent
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.role.errors %}
+                                <div class="text-danger mt-2">{{ form.role.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Other Form Fields -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {% bootstrap_field form.username %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {% bootstrap_field form.email %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {% bootstrap_field form.password1 %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {% bootstrap_field form.password2 %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {% bootstrap_field form.company_name %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {% bootstrap_field form.gstin %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {% bootstrap_field form.phone %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {% bootstrap_field form.city %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {% bootstrap_field form.state %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {% bootstrap_field form.pincode %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {% bootstrap_field form.address %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {% bootstrap_field form.coupon_code %}
+                        </div>
                         
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-check-circle"></i> Sign Up
+                                <i class="bi bi-check-circle"></i> Create Account
                             </button>
                         </div>
                     </form>
@@ -34,4 +123,10 @@
         </div>
     </div>
 </div>
+
+<style>
+    .form-check-input:checked + .form-check-label {
+        color: #0d6efd;
+    }
+</style>
 {% endblock %}

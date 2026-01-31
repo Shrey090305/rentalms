@@ -4,7 +4,19 @@ from .models import User
 
 
 class SignUpForm(UserCreationForm):
-    """Customer signup form"""
+    """Signup form for customers and vendors"""
+    ROLE_CHOICES = [
+        ('customer', 'Customer - Rent Products'),
+        ('vendor', 'Vendor - List Products for Rent'),
+    ]
+    
+    role = forms.ChoiceField(
+        choices=ROLE_CHOICES,
+        widget=forms.RadioSelect,
+        initial='customer',
+        required=True,
+        help_text='Select your account type'
+    )
     email = forms.EmailField(required=True)
     company_name = forms.CharField(max_length=200, required=True)
     gstin = forms.CharField(
@@ -21,20 +33,21 @@ class SignUpForm(UserCreationForm):
     
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2', 'company_name', 'gstin', 
+        fields = ['role', 'username', 'email', 'password1', 'password2', 'company_name', 'gstin', 
                   'phone', 'address', 'city', 'state', 'pincode']
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Add Bootstrap classes
         for field_name, field in self.fields.items():
-            field.widget.attrs['class'] = 'form-control'
+            if field_name != 'role':  # Radio buttons don't need form-control class
+                field.widget.attrs['class'] = 'form-control'
             if field_name == 'coupon_code':
                 field.widget.attrs['placeholder'] = 'Enter coupon code (optional)'
     
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.role = 'customer'
+        user.role = self.cleaned_data['role']  # Use selected role
         user.email = self.cleaned_data['email']
         user.company_name = self.cleaned_data['company_name']
         user.gstin = self.cleaned_data['gstin']

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Orders - RentEase{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <h1 class="mb-4"><i class="bi bi-list-check"></i> Manage Orders</h1>
+    
+    <!-- Filter -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-auto">
+                    <label class="form-label">Filter by Status:</label>
+                </div>
+                <div class="col-auto">
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                        <option value="picked_up" {% if status_filter == 'picked_up' %}selected{% endif %}>Picked Up</option>
+                        <option value="rented" {% if status_filter == 'rented' %}selected{% endif %}>Rented</option>
+                        <option value="returned" {% if status_filter == 'returned' %}selected{% endif %}>Returned</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if orders %}
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                                <tr>
+                                    <td><strong>{{ order.order_number }}</strong></td>
+                                    <td>
+                                        {{ order.customer.username }}<br>
+                                        <small class="text-muted">{{ order.customer.company_name }}</small>
+                                    </td>
+                                    <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                    <td>{{ order.lines.count }}</td>
+                                    <td>₹{{ order.get_total }}</td>
+                                    <td>
+                                        <span class="badge status-badge 
+                                            {% if order.status == 'confirmed' %}bg-success
+                                            {% elif order.status == 'pending' %}bg-warning
+                                            {% elif order.status == 'cancelled' %}bg-danger
+                                            {% else %}bg-info{% endif %}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'rental:order_detail_manage' order.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No orders found.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

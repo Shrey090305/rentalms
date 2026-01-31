@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - RentEase{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <h1 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard</h1>
+    
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card dashboard-card border-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Total Products</h6>
+                            <h2 class="text-primary">{{ total_products }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-box-seam text-primary" style="font-size: 3rem; opacity: 0.3;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card dashboard-card border-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Total Orders</h6>
+                            <h2 class="text-success">{{ total_orders }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-bag-check text-success" style="font-size: 3rem; opacity: 0.3;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card dashboard-card border-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Active Rentals</h6>
+                            <h2 class="text-warning">{{ active_rentals }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-clock-history text-warning" style="font-size: 3rem; opacity: 0.3;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card dashboard-card border-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Total Revenue</h6>
+                            <h2 class="text-info">₹{{ total_revenue }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-currency-rupee text-info" style="font-size: 3rem; opacity: 0.3;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Most Rented Products -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Most Rented Products</h5>
+                </div>
+                <div class="card-body">
+                    {% if most_rented %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in most_rented %}
+                                        <tr>
+                                            <td>{{ item.product__name }}</td>
+                                            <td><span class="badge bg-primary">{{ item.total_qty }}</span></td>
+                                            <td>₹{{ item.total_revenue }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No rental data available yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Orders -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Orders</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                        <div class="list-group list-group-flush">
+                            {% for order in recent_orders %}
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ order.order_number }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ order.customer.username }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge status-badge 
+                                                {% if order.status == 'confirmed' %}bg-success
+                                                {% elif order.status == 'pending' %}bg-warning
+                                                {% elif order.status == 'cancelled' %}bg-danger
+                                                {% else %}bg-info{% endif %}">
+                                                {{ order.get_status_display }}
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">₹{{ order.get_total }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'rental:order_manage' %}" class="btn btn-outline-primary">
+                                View All Orders <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No orders yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <a href="{% url 'rental:product_create' %}" class="btn btn-primary w-100">
+                        <i class="bi bi-plus-circle"></i> Add Product
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'rental:order_manage' %}" class="btn btn-success w-100">
+                        <i class="bi bi-list-check"></i> Manage Orders
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'rental:product_manage' %}" class="btn btn-info w-100">
+                        <i class="bi bi-box"></i> View Products
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/admin/" class="btn btn-secondary w-100" target="_blank">
+                        <i class="bi bi-gear"></i> Admin Panel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

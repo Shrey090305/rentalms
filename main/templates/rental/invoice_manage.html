@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Invoice {{ invoice.invoice_number }} - Management{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4"><i class="bi bi-file-earmark-text"></i> Invoice Management</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Invoice Details</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Invoice #:</strong> {{ invoice.invoice_number }}</p>
+                    <p><strong>Order #:</strong> {{ order.order_number }}</p>
+                    <p><strong>Customer:</strong> {{ order.customer.company_name }}</p>
+                    <p><strong>Status:</strong> 
+                        <span class="badge bg-{{ invoice.status == 'paid' }}success{% if invoice.status == 'draft' %}secondary{% else %}warning{% endif %}">
+                            {{ invoice.get_status_display }}
+                        </span>
+                    </p>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <strong>₹{{ invoice.subtotal }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tax:</span>
+                        <strong>₹{{ invoice.tax_amount }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Security Deposit:</span>
+                        <strong>₹{{ invoice.security_deposit }}</strong>
+                    </div>
+                    {% if invoice.late_fee %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Late Fee:</span>
+                            <strong class="text-danger">₹{{ invoice.late_fee }}</strong>
+                        </div>
+                    {% endif %}
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5>Total:</h5>
+                        <h5 class="text-primary">₹{{ invoice.total_amount }}</h5>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Amount Paid:</span>
+                        <strong class="text-success">₹{{ invoice.amount_paid }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <strong>Balance:</strong>
+                        <strong class="text-danger">₹{{ invoice.get_balance }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Payments</h5>
+                </div>
+                <div class="card-body">
+                    {% if invoice.payments.all %}
+                        <ul class="list-group list-group-flush">
+                            {% for payment in invoice.payments.all %}
+                                <li class="list-group-item px-0">
+                                    <strong>₹{{ payment.amount }}</strong><br>
+                                    <small class="text-muted">
+                                        {{ payment.get_payment_method_display }} - {{ payment.created_at|date:"M d, Y" }}
+                                    </small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No payments recorded yet.</p>
+                    {% endif %}
+                    
+                    {% if invoice.get_balance > 0 %}
+                        <hr>
+                        <a href="{% url 'rental:record_payment' invoice.pk %}" class="btn btn-success w-100">
+                            <i class="bi bi-plus-circle"></i> Record Payment
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2">
+                <a href="{% url 'rental:order_detail_manage' order.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Order
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

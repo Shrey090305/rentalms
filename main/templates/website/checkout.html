@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Checkout - RentEase{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4"><i class="bi bi-credit-card"></i> Checkout</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Delivery Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% bootstrap_form form %}
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-check-circle"></i> Place Order
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>Items:</strong> {{ cart.lines.count }}</p>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <strong>₹{{ subtotal }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>GST (18%):</span>
+                        <strong>₹{{ tax_amount }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Security Deposit:</span>
+                        <strong>₹{{ security_deposit }}</strong>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <h5>Grand Total:</h5>
+                        <h5 class="text-primary">₹{{ grand_total }}</h5>
+                    </div>
+                    <small class="text-muted">*Security deposit will be refunded on return</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

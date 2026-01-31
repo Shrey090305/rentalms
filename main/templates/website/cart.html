@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Cart - RentEase{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4"><i class="bi bi-cart3"></i> Your Cart</h1>
+    
+    {% if cart.lines.all %}
+        <div class="row">
+            <div class="col-md-8">
+                {% for line in cart.lines.all %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-2">
+                                    {% if line.product.image %}
+                                        <img src="{{ line.product.image.url }}" class="img-fluid rounded" alt="{{ line.product.name }}">
+                                    {% else %}
+                                        <div class="bg-secondary rounded" style="height: 80px;"></div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>{{ line.product.name }}</h5>
+                                    <p class="mb-1 text-muted">
+                                        <small>
+                                            <i class="bi bi-calendar"></i> 
+                                            {{ line.start_date|date:"M d, Y H:i" }} - {{ line.end_date|date:"M d, Y H:i" }}
+                                        </small>
+                                    </p>
+                                    <p class="mb-0">Quantity: {{ line.quantity }}</p>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <h5 class="text-primary">₹{{ line.get_total }}</h5>
+                                    <small class="text-muted">₹{{ line.unit_price }} each</small>
+                                </div>
+                                <div class="col-md-1">
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="remove_line" value="1">
+                                        <input type="hidden" name="line_id" value="{{ line.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <strong>₹{{ subtotal }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>GST (18%):</span>
+                            <strong>₹{{ tax_amount }}</strong>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5>Total:</h5>
+                            <h5 class="text-primary">₹{{ grand_total }}</h5>
+                        </div>
+                        <a href="{% url 'website:checkout' %}" class="btn btn-success btn-lg w-100">
+                            <i class="bi bi-check-circle"></i> Proceed to Checkout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            Your cart is empty. <a href="{% url 'website:product_list' %}">Browse products</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

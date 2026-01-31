@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment - RentEase{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-credit-card"></i> Secure Payment via Razorpay</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Order Summary -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Order Details</h6>
+                            <p class="mb-1"><strong>Invoice:</strong> {{ invoice.invoice_number }}</p>
+                            <p class="mb-1"><strong>Order:</strong> {{ invoice.order.order_number }}</p>
+                            <p class="mb-0"><strong>Order ID:</strong> <code>{{ razorpay_order_id }}</code></p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <h6 class="text-muted">Amount to Pay</h6>
+                            <h2 class="text-success mb-0">₹{{ amount_to_pay }}</h2>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Demo Notice -->
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle"></i> <strong>Demo Mode:</strong> This is a dummy Razorpay integration for testing. No real payment will be processed.
+                    </div>
+                    
+                    <!-- Payment Methods -->
+                    <h5 class="mb-3">Select Payment Method</h5>
+                    
+                    <form method="post" id="paymentForm">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3">
+                            <!-- UPI Payment -->
+                            <div class="col-md-6">
+                                <div class="card payment-method-card" onclick="selectPayment('upi')">
+                                    <div class="card-body text-center">
+                                        <input type="radio" name="payment_method" value="upi" id="upi" class="form-check-input" checked>
+                                        <label for="upi" class="d-block mt-2">
+                                            <i class="bi bi-phone fs-2 text-primary"></i>
+                                            <h6 class="mt-2">UPI</h6>
+                                            <small class="text-muted">PhonePe, Google Pay, Paytm</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Card Payment -->
+                            <div class="col-md-6">
+                                <div class="card payment-method-card" onclick="selectPayment('card')">
+                                    <div class="card-body text-center">
+                                        <input type="radio" name="payment_method" value="card" id="card" class="form-check-input">
+                                        <label for="card" class="d-block mt-2">
+                                            <i class="bi bi-credit-card fs-2 text-primary"></i>
+                                            <h6 class="mt-2">Card</h6>
+                                            <small class="text-muted">Debit/Credit Card</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Net Banking -->
+                            <div class="col-md-6">
+                                <div class="card payment-method-card" onclick="selectPayment('netbanking')">
+                                    <div class="card-body text-center">
+                                        <input type="radio" name="payment_method" value="netbanking" id="netbanking" class="form-check-input">
+                                        <label for="netbanking" class="d-block mt-2">
+                                            <i class="bi bi-bank fs-2 text-primary"></i>
+                                            <h6 class="mt-2">Net Banking</h6>
+                                            <small class="text-muted">All major banks</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Wallet -->
+                            <div class="col-md-6">
+                                <div class="card payment-method-card" onclick="selectPayment('wallet')">
+                                    <div class="card-body text-center">
+                                        <input type="radio" name="payment_method" value="wallet" id="wallet" class="form-check-input">
+                                        <label for="wallet" class="d-block mt-2">
+                                            <i class="bi bi-wallet2 fs-2 text-primary"></i>
+                                            <h6 class="mt-2">Wallet</h6>
+                                            <small class="text-muted">Paytm, Mobikwik, etc</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-success btn-lg w-100" id="payButton">
+                                <i class="bi bi-shield-check"></i> Pay ₹{{ amount_to_pay }} Securely
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-lock"></i> Secured by Razorpay | 
+                            Test Key: {{ razorpay_key }}
+                        </small>
+                    </div>
+                    
+                    <a href="{% url 'website:order_detail' invoice.order.pk %}" class="btn btn-outline-secondary w-100 mt-3">
+                        <i class="bi bi-arrow-left"></i> Cancel Payment
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .payment-method-card {
+        cursor: pointer;
+        transition: all 0.3s;
+        border: 2px solid #dee2e6;
+    }
+    
+    .payment-method-card:hover {
+        border-color: #0d6efd;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .payment-method-card input[type="radio"]:checked + label {
+        color: #0d6efd;
+    }
+    
+    .payment-method-card:has(input[type="radio"]:checked) {
+        border-color: #0d6efd;
+        background-color: #f0f8ff;
+    }
+</style>
+
+<script>
+    function selectPayment(method) {
+        document.getElementById(method).checked = true;
+    }
+    
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        const button = document.getElementById('payButton');
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing Payment...';
+    });
+</script>
+{% endblock %}

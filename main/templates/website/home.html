@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - RentEase{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold">Welcome to RentEase</h1>
+                <p class="lead">Your one-stop solution for rental equipment and services</p>
+                <div class="mt-4">
+                    <a href="{% url 'website:product_list' %}" class="btn btn-light btn-lg me-2">
+                        <i class="bi bi-search"></i> Browse Products
+                    </a>
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'accounts:signup' %}" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-person-plus"></i> Sign Up
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <i class="bi bi-box-seam" style="font-size: 15rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Why Choose RentEase?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-clock-history text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="card-title mt-3">Flexible Rental Periods</h5>
+                        <p class="card-text">Rent by hour, day, or week - you choose what works for you</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-shield-check text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="card-title mt-3">Quality Guaranteed</h5>
+                        <p class="card-text">All equipment is verified and maintained to highest standards</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-lightning-charge text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="card-title mt-3">Quick & Easy</h5>
+                        <p class="card-text">Simple booking process with instant confirmation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+{% if featured_products %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Featured Products</h2>
+        <div class="row g-4">
+            {% for product in featured_products %}
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" class="card-img-top product-img" alt="{{ product.name }}">
+                        {% else %}
+                            <div class="card-img-top product-img bg-secondary d-flex align-items-center justify-content-center">
+                                <i class="bi bi-image text-white" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description|truncatewords:15 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="h5 mb-0 text-primary">₹{{ product.price_per_day }}/day</span>
+                                <a href="{% url 'website:product_detail' product.pk %}" class="btn btn-outline-primary">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'website:product_list' %}" class="btn btn-primary btn-lg">
+                View All Products <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Get Started?</h2>
+        <p class="lead mb-4">Join thousands of satisfied customers renting with RentEase</p>
+        {% if not user.is_authenticated %}
+            <a href="{% url 'accounts:signup' %}" class="btn btn-light btn-lg">
+                <i class="bi bi-person-plus"></i> Create Account Today
+            </a>
+        {% else %}
+            <a href="{% url 'website:product_list' %}" class="btn btn-light btn-lg">
+                <i class="bi bi-search"></i> Start Browsing
+            </a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

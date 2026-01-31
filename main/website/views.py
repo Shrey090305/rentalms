@@ -50,7 +50,7 @@ def product_detail(request, pk):
     """Product detail page"""
     product = get_object_or_404(Product, pk=pk, publish_on_website=True)
     
-    if request.method == 'POST' and request.user.is_authenticated:
+    if request.method == 'POST' and request.user.is_authenticated and request.user.role == 'customer':
         form = AddToCartForm(request.POST, product=product)
         if form.is_valid():
             # Get or create cart (draft quotation)
@@ -91,6 +91,11 @@ def product_detail(request, pk):
 @login_required
 def cart_view(request):
     """Shopping cart / quotation view"""
+    # Only customers can access cart
+    if request.user.role != 'customer':
+        messages.error(request, 'Only customers can rent products.')
+        return redirect('website:home')
+    
     cart = Quotation.objects.filter(
         customer=request.user,
         status='draft'
@@ -119,6 +124,11 @@ def cart_view(request):
 @login_required
 def checkout_view(request):
     """Checkout and create order"""
+    # Only customers can checkout
+    if request.user.role != 'customer':
+        messages.error(request, 'Only customers can rent products.')
+        return redirect('website:home')
+    
     cart = get_object_or_404(
         Quotation,
         customer=request.user,

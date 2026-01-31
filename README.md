@@ -1,2 +1,0 @@
-# rentalms
-Rental Management System

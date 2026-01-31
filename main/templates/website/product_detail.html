@@ -38,7 +38,7 @@
                 <i class="bi bi-box"></i> <strong>{{ product.quantity_on_hand }}</strong> units available
             </div>
             
-            {% if user.is_authenticated and user.is_customer %}
+            {% if user.is_authenticated and user.role == 'customer' %}
                 <div class="card">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0"><i class="bi bi-calendar-plus"></i> Add to Cart</h5>
@@ -53,9 +53,13 @@
                         </form>
                     </div>
                 </div>
+            {% elif user.is_authenticated %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Only customers can rent products. Vendors and admins cannot place orders.
+                </div>
             {% else %}
                 <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle"></i> Please <a href="{% url 'accounts:login' %}">login</a> to rent this product.
+                    <i class="bi bi-exclamation-triangle"></i> Please <a href="{% url 'accounts:login' %}">login as a customer</a> to rent this product.
                 </div>
             {% endif %}
         </div>

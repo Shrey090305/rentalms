@@ -165,26 +165,28 @@
         </div>
         <div class="card-body">
             <div class="row g-3">
-                <div class="col-md-3">
+                <div class="{% if user.role == 'admin' %}col-md-3{% else %}col-md-4{% endif %}">
                     <a href="{% url 'rental:product_create' %}" class="btn btn-primary w-100">
                         <i class="bi bi-plus-circle"></i> Add Product
                     </a>
                 </div>
-                <div class="col-md-3">
+                <div class="{% if user.role == 'admin' %}col-md-3{% else %}col-md-4{% endif %}">
                     <a href="{% url 'rental:order_manage' %}" class="btn btn-success w-100">
                         <i class="bi bi-list-check"></i> Manage Orders
                     </a>
                 </div>
-                <div class="col-md-3">
+                <div class="{% if user.role == 'admin' %}col-md-3{% else %}col-md-4{% endif %}">
                     <a href="{% url 'rental:product_manage' %}" class="btn btn-info w-100">
                         <i class="bi bi-box"></i> View Products
                     </a>
                 </div>
+                {% if user.role == 'admin' %}
                 <div class="col-md-3">
                     <a href="/admin/" class="btn btn-secondary w-100" target="_blank">
                         <i class="bi bi-gear"></i> Admin Panel
                     </a>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>

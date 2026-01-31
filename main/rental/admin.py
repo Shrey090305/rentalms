@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
-    Category, ProductAttribute, AttributeValue, Product, ProductVariant,
+    Category, ProductAttribute, AttributeValue, Product, ProductImage, ProductVariant,
     Quotation, QuotationLine, RentalOrder, OrderLine,
     Pickup, Return, Invoice, Payment, SystemSettings
 )
@@ -37,13 +37,19 @@ class ProductVariantInline(admin.TabularInline):
     extra = 0
 
 
+class ProductImageInline(admin.TabularInline):
+    model = ProductImage
+    extra = 1
+    fields = ['image', 'alt_text', 'order']
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'vendor', 'quantity_on_hand', 'price_per_day', 'is_rentable', 'publish_on_website']
     list_filter = ['category', 'is_rentable', 'publish_on_website', 'vendor']
     search_fields = ['name', 'description']
     filter_horizontal = ['attributes']
-    inlines = [ProductVariantInline]
+    inlines = [ProductImageInline, ProductVariantInline]
     
     fieldsets = (
         ('Basic Info', {

@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Payment - RentEase{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <!-- Payment Simulation Card -->
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <i class="bi bi-phone-fill fs-1"></i>
+                    <h4 class="mt-2 mb-0">UPI Payment Simulation</h4>
+                    <small>Demo Mode - No Real Money</small>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Payment Details -->
+                    <div class="text-center mb-4">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/320px-UPI-Logo-vector.svg.png" 
+                             alt="UPI Logo" style="height: 50px;" class="mb-3">
+                        <h5 class="text-muted">Pay To</h5>
+                        <h4 class="mb-3">RentEase Rental System</h4>
+                        
+                        <div class="alert alert-light border">
+                            <small class="text-muted d-block">Invoice Number</small>
+                            <strong>{{ invoice.invoice_number }}</strong>
+                        </div>
+                        
+                        <div class="alert alert-success">
+                            <small class="text-muted d-block">Amount to Pay</small>
+                            <h2 class="mb-0 text-success">₹{{ amount_to_pay }}</h2>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <small class="text-muted d-block">Payment Method</small>
+                            <strong class="text-uppercase">
+                                {% if payment_method == 'upi' %}
+                                    <i class="bi bi-phone"></i> UPI
+                                {% elif payment_method == 'card' %}
+                                    <i class="bi bi-credit-card"></i> Card
+                                {% elif payment_method == 'netbanking' %}
+                                    <i class="bi bi-bank"></i> Net Banking
+                                {% else %}
+                                    <i class="bi bi-wallet2"></i> Wallet
+                                {% endif %}
+                            </strong>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Demo Notice -->
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle"></i> <strong>Demo Mode:</strong> 
+                        This is a payment simulation. No actual money will be transferred. 
+                        Choose an option below to test the payment flow.
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="d-grid gap-3">
+                            <!-- Confirm Payment Button -->
+                            <button type="submit" name="action" value="confirm" 
+                                    class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle-fill"></i> Confirm Payment
+                                <div><small>Simulate successful payment</small></div>
+                            </button>
+                            
+                            <!-- Deny Payment Button -->
+                            <button type="submit" name="action" value="deny" 
+                                    class="btn btn-danger btn-lg">
+                                <i class="bi bi-x-circle-fill"></i> Deny Payment
+                                <div><small>Cancel this transaction</small></div>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{% url 'website:payment' invoice.pk %}" class="text-muted">
+                            <i class="bi bi-arrow-left"></i> Back to Payment Options
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Info Card -->
+            <div class="card mt-3 bg-light">
+                <div class="card-body">
+                    <h6><i class="bi bi-info-circle"></i> How This Works:</h6>
+                    <ul class="small mb-0">
+                        <li><strong>Confirm Payment:</strong> Simulates successful payment - order will be confirmed</li>
+                        <li><strong>Deny Payment:</strong> Simulates payment failure - you'll return to payment page</li>
+                        <li>In production, this would be your actual UPI app payment screen</li>
+                        <li>No real money is involved in this demo</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-lg div small {
+        font-size: 0.8rem;
+        opacity: 0.9;
+    }
+    
+    .card {
+        animation: slideUp 0.3s ease-out;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}

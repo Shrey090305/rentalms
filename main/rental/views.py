@@ -6,11 +6,11 @@ from django.utils import timezone
 from django.db import models
 from decimal import Decimal
 from .models import (
-    Product, RentalOrder, OrderLine, Invoice, Payment,
+    Product, ProductImage, RentalOrder, OrderLine, Invoice, Payment,
     Pickup, Return, Category
 )
 from .forms import (
-    ProductForm, OrderStatusUpdateForm, PickupForm,
+    ProductForm, ProductImageForm, OrderStatusUpdateForm, PickupForm,
     ReturnForm, PaymentForm
 )
 
@@ -120,6 +120,23 @@ def product_create(request):
             product.vendor = request.user
             product.save()
             form.save_m2m()  # Save many-to-many relationships
+            
+            # Handle multiple additional images
+            images = request.FILES.getlist('additional_images')
+            alt_texts = request.POST.getlist('image_alt_text')
+            orders = request.POST.getlist('image_order')
+            
+            for i, image in enumerate(images):
+                if image:
+                    alt_text = alt_texts[i] if i < len(alt_texts) else ''
+                    order = orders[i] if i < len(orders) else 0
+                    ProductImage.objects.create(
+                        product=product,
+                        image=image,
+                        alt_text=alt_text,
+                        order=int(order) if order else 0
+                    )
+            
             messages.success(request, f'Product "{product.name}" created successfully!')
             return redirect('rental:product_manage')
     else:
@@ -152,9 +169,13 @@ def product_edit(request, pk):
     else:
         form = ProductForm(instance=product)
     
+    # Image form for adding new images
+    image_form = ProductImageForm()
+    
     context = {
         'form': form,
         'product': product,
+        'image_form': image_form,
         'action': 'Edit',
     }
     return render(request, 'rental/product_form.html', context)
@@ -181,6 +202,47 @@ def product_delete(request, pk):
         'product': product,
     }
     return render(request, 'rental/product_delete.html', context)
+
+
+@login_required
+@user_passes_test(is_vendor_or_admin)
+def product_image_delete(request, pk):
+    """Delete a product image"""
+    image = get_object_or_404(ProductImage, pk=pk)
+    product = image.product
+    
+    # Check permission
+    if request.user.is_vendor() and product.vendor != request.user:
+        messages.error(request, 'You do not have permission to delete this image.')
+        return redirect('rental:product_manage')
+    
+    image.delete()
+    messages.success(request, 'Image deleted successfully!')
+    return redirect('rental:product_edit', pk=product.pk)
+
+
+@login_required
+@user_passes_test(is_vendor_or_admin)
+def product_image_add(request, product_pk):
+    """Add a new image to product"""
+    product = get_object_or_404(Product, pk=product_pk)
+    
+    # Check permission
+    if request.user.is_vendor() and product.vendor != request.user:
+        messages.error(request, 'You do not have permission to add images to this product.')
+        return redirect('rental:product_manage')
+    
+    if request.method == 'POST':
+        form = ProductImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            image = form.save(commit=False)
+            image.product = product
+            image.save()
+            messages.success(request, 'Image added successfully!')
+        else:
+            messages.error(request, 'Error adding image. Please check the form.')
+    
+    return redirect('rental:product_edit', pk=product.pk)
 
 
 @login_required

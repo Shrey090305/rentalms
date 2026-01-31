@@ -125,6 +125,23 @@ class Product(models.Model):
         ordering = ['-created_at']
 
 
+class ProductImage(models.Model):
+    """Additional product images for image slider"""
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='additional_images')
+    image = models.ImageField(upload_to='products/')
+    alt_text = models.CharField(max_length=200, blank=True)
+    order = models.IntegerField(default=0, help_text="Display order (lower numbers appear first)")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.product.name} - Image {self.order}"
+    
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = 'Product Image'
+        verbose_name_plural = 'Product Images'
+
+
 class ProductVariant(models.Model):
     """Product variants with different pricing/stock"""
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')

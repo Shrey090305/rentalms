@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from .models import (
-    Product, ProductVariant, Quotation, QuotationLine,
+    Product, ProductImage, ProductVariant, Quotation, QuotationLine,
     RentalOrder, OrderLine, Invoice, Payment, Return
 )
 
@@ -25,6 +25,18 @@ class ProductForm(forms.ModelForm):
         for field_name, field in self.fields.items():
             if field_name != 'attributes':
                 field.widget.attrs['class'] = 'form-control'
+
+
+class ProductImageForm(forms.ModelForm):
+    """Form for adding individual product images"""
+    class Meta:
+        model = ProductImage
+        fields = ['image', 'alt_text', 'order']
+        widgets = {
+            'alt_text': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional description'}),
+            'order': forms.NumberInput(attrs={'class': 'form-control', 'value': 0}),
+            'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+        }
 
 
 class AddToCartForm(forms.Form):

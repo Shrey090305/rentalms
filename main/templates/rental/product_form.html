@@ -12,9 +12,40 @@
     
     <div class="card">
         <div class="card-body">
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data" id="productForm">
                 {% csrf_token %}
                 {% bootstrap_form form %}
+                
+                <!-- Additional Images (for both create and edit) -->
+                {% if not product %}
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-images"></i> Additional Product Images
+                        <small class="text-muted">(Optional)</small>
+                    </label>
+                    <div id="imageInputsContainer">
+                        <div class="row g-2 mb-2 image-input-row">
+                            <div class="col-md-5">
+                                <input type="file" name="additional_images" class="form-control" accept="image/*">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" name="image_alt_text" class="form-control" placeholder="Alt text (optional)">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number" name="image_order" class="form-control" placeholder="Order" value="0">
+                            </div>
+                            <div class="col-md-1">
+                                <button type="button" class="btn btn-danger w-100 remove-image-btn" onclick="removeImageRow(this)" style="display: none;">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addImageRow()">
+                        <i class="bi bi-plus-circle"></i> Add Another Image
+                    </button>
+                </div>
+                {% endif %}
                 
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">
@@ -27,5 +58,126 @@
             </form>
         </div>
     </div>
+    
+    {% if product %}
+        <!-- Existing Images Section (only for edit) -->
+        <div class="card mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-images"></i> Additional Product Images</h5>
+            </div>
+            <div class="card-body">
+                <!-- Add New Image Form -->
+                <div class="mb-4">
+                    <h6>Add New Image</h6>
+                    <form method="post" action="{% url 'rental:product_image_add' product.pk %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row g-2">
+                            <div class="col-md-5">
+                                {% bootstrap_field image_form.image show_label=False %}
+                            </div>
+                            <div class="col-md-4">
+                                {% bootstrap_field image_form.alt_text show_label=False %}
+                            </div>
+                            <div class="col-md-2">
+                                {% bootstrap_field image_form.order show_label=False %}
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="bi bi-plus-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Existing Images -->
+                {% if product.additional_images.all %}
+                    <h6>Current Images ({{ product.additional_images.count }})</h6>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th style="width: 100px;">Preview</th>
+                                    <th>Alt Text</th>
+                                    <th style="width: 80px;">Order</th>
+                                    <th style="width: 100px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for img in product.additional_images.all %}
+                                    <tr>
+                                        <td>
+                                            <img src="{{ img.image.url }}" class="img-thumbnail" alt="{{ img.alt_text }}" style="max-width: 80px; max-height: 80px;">
+                                        </td>
+                                        <td>{{ img.alt_text|default:"-" }}</td>
+                                        <td class="text-center">{{ img.order }}</td>
+                                        <td class="text-center">
+                                            <a href="{{ img.image.url }}" target="_blank" class="btn btn-sm btn-info" title="View Full Size">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{% url 'rental:product_image_delete' img.pk %}" 
+                                               class="btn btn-sm btn-danger"
+                                               onclick="return confirm('Delete this image?')"
+                                               title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> No additional images yet. Use the form above to add images.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
 </div>
+
+<script>
+function addImageRow() {
+    const container = document.getElementById('imageInputsContainer');
+    const newRow = document.createElement('div');
+    newRow.className = 'row g-2 mb-2 image-input-row';
+    newRow.innerHTML = `
+        <div class="col-md-5">
+            <input type="file" name="additional_images" class="form-control" accept="image/*">
+        </div>
+        <div class="col-md-4">
+            <input type="text" name="image_alt_text" class="form-control" placeholder="Alt text (optional)">
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="image_order" class="form-control" placeholder="Order" value="0">
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-danger w-100 remove-image-btn" onclick="removeImageRow(this)">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(newRow);
+    updateRemoveButtons();
+}
+
+function removeImageRow(button) {
+    button.closest('.image-input-row').remove();
+    updateRemoveButtons();
+}
+
+function updateRemoveButtons() {
+    const rows = document.querySelectorAll('.image-input-row');
+    rows.forEach((row, index) => {
+        const removeBtn = row.querySelector('.remove-image-btn');
+        if (rows.length > 1) {
+            removeBtn.style.display = 'block';
+        } else {
+            removeBtn.style.display = 'none';
+        }
+    });
+}
+</script>
+
 {% endblock %}

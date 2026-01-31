@@ -6,17 +6,88 @@
 {% block content %}
 <div class="container my-4">
     <div class="row">
-        <div class="col-md-6">
-            {% if product.image %}
-                <img src="{{ product.image.url }}" class="img-fluid rounded" alt="{{ product.name }}">
-            {% else %}
-                <div class="bg-secondary rounded d-flex align-items-center justify-content-center" style="height: 400px;">
-                    <i class="bi bi-image text-white" style="font-size: 5rem;"></i>
+        <div class="col-md-6" style="padding-right: 70px; margin-top: 40px;">
+            <!-- Image Carousel -->
+            {% if product.additional_images.all %}
+                <div id="productCarousel" class="carousel slide" data-bs-ride="carousel" style="border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;">
+                    <div class="carousel-indicators">
+                        {% if product.image %}
+                            <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="0" class="active"></button>
+                            {% for img in product.additional_images.all %}
+                                <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="{{ forloop.counter }}"></button>
+                            {% endfor %}
+                        {% else %}
+                            {% for img in product.additional_images.all %}
+                                <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></button>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="carousel-inner">
+                        {% if product.image %}
+                            <div class="carousel-item active">
+                                <img src="{{ product.image.url }}" class="d-block w-100" alt="{{ product.name }}" style="height: 400px; object-fit: cover;">
+                            </div>
+                        {% endif %}
+                        
+                        {% for img in product.additional_images.all %}
+                            <div class="carousel-item {% if not product.image and forloop.first %}active{% endif %}">
+                                <img src="{{ img.image.url }}" class="d-block w-100" alt="{{ img.alt_text|default:product.name }}" style="height: 400px; object-fit: cover;">
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
                 </div>
+            {% else %}
+                <!-- Single Image (No Additional Images) -->
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}" style="width: 100%; height: 400px; object-fit: cover; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                {% else %}
+                    <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 400px; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                        <i class="bi bi-image text-white" style="font-size: 5rem;"></i>
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
         <div class="col-md-6">
-            <h1>{{ product.name }}</h1>
+            <div class="d-flex align-items-start justify-content-between mb-3">
+                <h1 class="mb-0">{{ product.name }}</h1>
+                
+                <!-- Vendor Info -->
+                <div class="card border-0 shadow-sm ms-3" style="min-width: 200px; margin-top: 8px;">
+                    <div class="card-body py-2 px-3">
+                        <div class="d-flex align-items-center">
+                            {% if product.vendor.company_logo %}
+                                <img src="{{ product.vendor.company_logo.url }}" 
+                                     alt="{{ product.vendor.get_full_name }}"
+                                     class="vendor-logo me-2"
+                                     style="width: 35px; height: 35px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 6px; padding: 3px; background: white;">
+                            {% else %}
+                                <div class="vendor-logo-placeholder me-2" 
+                                     style="width: 35px; height: 35px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-building text-white" style="font-size: 0.8rem;"></i>
+                                </div>
+                            {% endif %}
+                            <div class="flex-grow-1" style="min-width: 0;">
+                                <small class="text-muted d-block" style="font-size: 0.7rem;">Vendor</small>
+                                <div class="d-flex align-items-center">
+                                    <strong class="text-truncate" style="font-size: 0.85rem;">{{ product.vendor.get_full_name }}</strong>
+                                    <i class="bi bi-patch-check-fill text-primary ms-1" style="font-size: 0.75rem;" title="Verified"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <p class="lead">{{ product.description }}</p>
             
             <div class="card mb-3">

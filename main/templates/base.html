@@ -43,7 +43,18 @@
         
         .product-img {
             height: 200px;
-            object-fit: cover;
+            object-fit: contain;
+            background: #f8f9fa;
+        }
+        
+        .product-card-hover {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .product-card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
         
         .badge-cart {

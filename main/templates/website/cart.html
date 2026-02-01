@@ -3,43 +3,46 @@
 {% block title %}Cart - RentEase{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <h1 class="mb-4"><i class="bi bi-cart3"></i> Your Cart</h1>
+<div class="container my-5">
+    <div class="mb-5">
+        <h1 class="display-5 fw-bold mb-2"><i class="bi bi-cart3"></i> Your Cart</h1>
+        <p class="text-secondary fs-5">Review your rental items before checkout</p>
+    </div>
     
     {% if cart.lines.all %}
         <div class="row">
             <div class="col-md-8">
                 {% for line in cart.lines.all %}
-                    <div class="card mb-3">
-                        <div class="card-body">
+                    <div class="card mb-3" style="border: 2px solid #e2e8f0; border-radius: 0.75rem;">
+                        <div class="card-body p-4">
                             <div class="row align-items-center">
                                 <div class="col-md-2">
                                     {% if line.product.image %}
-                                        <img src="{{ line.product.image.url }}" class="img-fluid rounded" alt="{{ line.product.name }}">
+                                        <img src="{{ line.product.image.url }}" class="img-fluid" style="height: 80px; object-fit: contain; border-radius: 0.5rem; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 0.5rem;" alt="{{ line.product.name }}">
                                     {% else %}
-                                        <div class="bg-secondary rounded" style="height: 80px;"></div>
+                                        <div class="d-flex align-items-center justify-content-center" style="height: 80px; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); border-radius: 0.5rem;">
+                                            <i class="bi bi-image text-secondary"></i>
+                                        </div>
                                     {% endif %}
                                 </div>
                                 <div class="col-md-6">
-                                    <h5>{{ line.product.name }}</h5>
-                                    <p class="mb-1 text-muted">
-                                        <small>
-                                            <i class="bi bi-calendar"></i> 
-                                            {{ line.start_date|date:"M d, Y H:i" }} - {{ line.end_date|date:"M d, Y H:i" }}
-                                        </small>
+                                    <h5 class="fw-bold mb-2">{{ line.product.name }}</h5>
+                                    <p class="mb-2 text-secondary small">
+                                        <i class="bi bi-calendar-range me-1"></i> 
+                                        {{ line.start_date|date:"M d, Y H:i" }} - {{ line.end_date|date:"M d, Y H:i" }}
                                     </p>
-                                    <p class="mb-0">Quantity: {{ line.quantity }}</p>
+                                    <p class="mb-0 small"><span class="badge" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">Qty: {{ line.quantity }}</span></p>
                                 </div>
                                 <div class="col-md-3 text-end">
-                                    <h5 class="text-primary">₹{{ line.get_total }}</h5>
-                                    <small class="text-muted">₹{{ line.unit_price }} each</small>
+                                    <h5 class="mb-1" style="color: #2563eb;">₹{{ line.get_total }}</h5>
+                                    <small class="text-secondary">₹{{ line.unit_price }} each</small>
                                 </div>
                                 <div class="col-md-1">
                                     <form method="post">
                                         {% csrf_token %}
                                         <input type="hidden" name="remove_line" value="1">
                                         <input type="hidden" name="line_id" value="{{ line.id }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <button type="submit" class="btn btn-sm" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; border-radius: 0.5rem;" title="Remove">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
@@ -50,34 +53,38 @@
                 {% endfor %}
             </div>
             <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
+                <div class="card sticky-top" style="border: 2px solid #e2e8f0; border-radius: 1rem; top: 2rem;">
+                    <div class="card-header" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; border-radius: 0.85rem 0.85rem 0 0;">
                         <h5 class="mb-0">Order Summary</h5>
                     </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Subtotal:</span>
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between mb-3 pb-3" style="border-bottom: 1px solid #e2e8f0;">
+                            <span class="text-secondary">Subtotal</span>
                             <strong>₹{{ subtotal }}</strong>
                         </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>GST (18%):</span>
+                        <div class="d-flex justify-content-between mb-3 pb-3" style="border-bottom: 1px solid #e2e8f0;">
+                            <span class="text-secondary">GST (18%)</span>
                             <strong>₹{{ tax_amount }}</strong>
                         </div>
-                        <hr>
-                        <div class="d-flex justify-content-between mb-3">
-                            <h5>Total:</h5>
-                            <h5 class="text-primary">₹{{ grand_total }}</h5>
+                        <div class="d-flex justify-content-between mb-4">
+                            <h5 class="mb-0">Total</h5>
+                            <h4 class="mb-0" style="color: #2563eb;">₹{{ grand_total }}</h4>
                         </div>
-                        <a href="{% url 'website:checkout' %}" class="btn btn-success btn-lg w-100">
-                            <i class="bi bi-check-circle"></i> Proceed to Checkout
+                        <a href="{% url 'website:checkout' %}" class="btn btn-lg w-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 0.75rem; font-weight: 600; padding: 0.875rem;">
+                            <i class="bi bi-check-circle me-2"></i> Proceed to Checkout
                         </a>
                     </div>
                 </div>
             </div>
         </div>
     {% else %}
-        <div class="alert alert-info">
-            Your cart is empty. <a href="{% url 'website:product_list' %}">Browse products</a>
+        <div class="alert text-center p-5" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; border-radius: 1rem;">
+            <i class="bi bi-cart-x fs-1 text-primary mb-3 d-block"></i>
+            <h5 class="fw-bold mb-2">Your Cart is Empty</h5>
+            <p class="text-secondary mb-3">Start adding products to your cart to begin renting</p>
+            <a href="{% url 'website:product_list' %}" class="btn btn-primary" style="border-radius: 0.75rem;">
+                <i class="bi bi-grid me-2"></i> Browse Products
+            </a>
         </div>
     {% endif %}
 </div>

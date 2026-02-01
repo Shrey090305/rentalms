@@ -14,47 +14,139 @@
     
     <style>
         :root {
-            --primary-color: #0d6efd;
-            --secondary-color: #6c757d;
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --primary-light: #3b82f6;
+            --secondary-color: #64748b;
+            --accent-color: #8b5cf6;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #06b6d4;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --bg-light: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         body {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+            line-height: 1.6;
         }
         
         .main-content {
             flex: 1;
+            padding-top: 2rem;
+        }
+        
+        /* Navbar Enhancements */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
+            box-shadow: var(--shadow-md);
+            padding: 1rem 0;
         }
         
         .navbar-brand {
             font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
+        .navbar-brand i {
+            font-size: 1.8rem;
+        }
+        
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white !important;
+            transform: translateY(-1px);
+        }
+        
+        .navbar-nav .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white !important;
+        }
+        
+        /* Card Enhancements */
         .card {
-            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            background: var(--bg-card);
+            overflow: hidden;
         }
         
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
         }
         
+        .card-header {
+            background: linear-gradient(135deg, var(--bg-light) 0%, #e2e8f0 100%);
+            border-bottom: 2px solid var(--primary-color);
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        /* Product Card Enhancements */
         .product-img {
-            height: 200px;
+            height: 220px;
             object-fit: contain;
-            background: #f8f9fa;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 1rem;
+            transition: transform 0.3s ease;
         }
         
         .product-card-hover {
             transition: all 0.3s ease;
             cursor: pointer;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
         }
         
         .product-card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .product-card-hover:hover .product-img {
+            transform: scale(1.05);
         }
         
         .badge-cart {
@@ -63,24 +155,126 @@
             right: -8px;
             padding: 4px 8px;
             border-radius: 50%;
-            background: #dc3545;
+            background: var(--danger-color);
             color: white;
             font-size: 12px;
+            font-weight: 600;
+            box-shadow: var(--shadow-md);
+        }
+        
+        /* Button Enhancements */
+        .btn {
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            padding: 0.625rem 1.25rem;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #1e3a8a 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
+        }
+        
+        /* Form Enhancements */
+        .form-control, .form-select {
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.625rem 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Badge Enhancements */
+        .badge {
+            padding: 0.5rem 0.875rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+        }
+        
+        .badge.bg-primary {
+            background: var(--primary-color) !important;
+        }
+        
+        .badge.bg-success {
+            background: var(--success-color) !important;
+        }
+        
+        .badge.bg-warning {
+            background: var(--warning-color) !important;
+        }
+        
+        .badge.bg-danger {
+            background: var(--danger-color) !important;
+        }
+        
+        .badge.bg-secondary {
+            background: var(--secondary-color) !important;
         }
         
         footer {
             margin-top: auto;
-            background-color: #f8f9fa;
-            padding: 2rem 0;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 3rem 0 1.5rem;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        footer a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        
+        footer a:hover {
+            color: white;
         }
         
         .dashboard-card {
             border-left: 4px solid var(--primary-color);
+            background: linear-gradient(135deg, white 0%, var(--bg-light) 100%);
         }
         
         .status-badge {
             padding: 0.35em 0.65em;
             font-size: 0.85em;
+            font-weight: 600;
         }
         
         .navbar-profile-pic {
@@ -217,27 +411,27 @@
     <footer class="mt-5">
         <div class="container">
             <div class="row">
-                <div class="col-md-4">
-                    <h5><i class="bi bi-box-seam"></i> RentEase</h5>
-                    <p class="text-muted">Your trusted rental management solution</p>
+                <div class="col-md-4 mb-4">
+                    <h5 class="text-white"><i class="bi bi-box-seam"></i> RentEase</h5>
+                    <p style="color: rgba(255, 255, 255, 0.7);">Your trusted rental management solution</p>
                 </div>
-                <div class="col-md-4">
-                    <h6>Quick Links</h6>
+                <div class="col-md-4 mb-4">
+                    <h6 class="text-white mb-3">Quick Links</h6>
                     <ul class="list-unstyled">
-                        <li><a href="{% url 'website:home' %}" class="text-decoration-none text-muted">Home</a></li>
-                        <li><a href="{% url 'website:product_list' %}" class="text-decoration-none text-muted">Products</a></li>
-                        <li><a href="{% url 'website:about' %}" class="text-decoration-none text-muted">About Us</a></li>
-                        <li><a href="{% url 'website:terms' %}" class="text-decoration-none text-muted">Terms & Conditions</a></li>
+                        <li class="mb-2"><a href="{% url 'website:home' %}" style="color: rgba(255, 255, 255, 0.8); text-decoration: none;">Home</a></li>
+                        <li class="mb-2"><a href="{% url 'website:product_list' %}" style="color: rgba(255, 255, 255, 0.8); text-decoration: none;">Products</a></li>
+                        <li class="mb-2"><a href="{% url 'website:about' %}" style="color: rgba(255, 255, 255, 0.8); text-decoration: none;">About Us</a></li>
+                        <li class="mb-2"><a href="{% url 'website:terms' %}" style="color: rgba(255, 255, 255, 0.8); text-decoration: none;">Terms & Conditions</a></li>
                     </ul>
                 </div>
-                <div class="col-md-4">
-                    <h6>Contact</h6>
-                    <p class="text-muted mb-0"><i class="bi bi-envelope"></i> info@rentease.com</p>
-                    <p class="text-muted"><i class="bi bi-telephone"></i> +91 1234567890</p>
+                <div class="col-md-4 mb-4">
+                    <h6 class="text-white mb-3">Contact</h6>
+                    <p class="mb-2" style="color: rgba(255, 255, 255, 0.8);"><i class="bi bi-envelope me-2"></i> info@rentease.com</p>
+                    <p style="color: rgba(255, 255, 255, 0.8);"><i class="bi bi-telephone me-2"></i> +91 1234567890</p>
                 </div>
             </div>
-            <hr>
-            <div class="text-center text-muted">
+            <hr style="border-color: rgba(255, 255, 255, 0.2);">
+            <div class="text-center" style="color: rgba(255, 255, 255, 0.6);">
                 <small>&copy; 2026 RentEase. All rights reserved.</small>
             </div>
         </div>

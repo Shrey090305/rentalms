@@ -3,42 +3,44 @@
 {% block title %}Login - RentEase{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container" style="margin-top: 5rem; margin-bottom: 5rem;">
     <div class="row justify-content-center">
         <div class="col-md-5">
-            <div class="card shadow">
+            <div class="card" style="border: 2px solid #e2e8f0; border-radius: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; border-radius: 1.4rem 1.4rem 0 0;">
+                    <i class="bi bi-box-arrow-in-right" style="font-size: 3rem;"></i>
+                    <h2 class="mt-3 mb-0 fw-bold">Welcome Back</h2>
+                    <p class="mb-0 small">Login to your account</p>
+                </div>
                 <div class="card-body p-5">
-                    <h2 class="card-title text-center mb-4">
-                        <i class="bi bi-box-arrow-in-right"></i> Login
-                    </h2>
-                    
                     <form method="post">
                         {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="id_username" class="form-label">Username</label>
+                        <div class="mb-4">
+                            <label for="id_username" class="form-label fw-semibold">Username</label>
                             {{ form.username }}
                         </div>
-                        <div class="mb-3">
-                            <label for="id_password" class="form-label">Password</label>
+                        <div class="mb-4">
+                            <label for="id_password" class="form-label fw-semibold">Password</label>
                             {{ form.password }}
                         </div>
                         
                         {% if form.errors %}
-                            <div class="alert alert-danger">
+                            <div class="alert" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border: 1px solid #fca5a5; border-radius: 0.75rem;">
+                                <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
                                 Please correct the errors above.
                             </div>
                         {% endif %}
                         
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-box-arrow-in-right"></i> Login
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-lg" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; border: none; border-radius: 0.75rem; font-weight: 600; padding: 0.875rem;">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> Login
                             </button>
                         </div>
                     </form>
                     
-                    <hr class="my-4">
-                    <p class="text-center mb-0">
-                        Don't have an account? <a href="{% url 'accounts:signup' %}">Sign up</a>
+                    <hr class="my-4" style="border-color: #e2e8f0;">
+                    <p class="text-center mb-0 text-secondary">
+                        Don't have an account? <a href="{% url 'accounts:signup' %}" style="color: #2563eb; text-decoration: none; font-weight: 600;">Sign up</a>
                     </p>
                 </div>
             </div>
@@ -49,9 +51,15 @@
 <style>
     #id_username, #id_password {
         width: 100%;
-        padding: 0.5rem;
-        border: 1px solid #ced4da;
-        border-radius: 0.375rem;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+    }
+    #id_username:focus, #id_password:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
 </style>
 {% endblock %}

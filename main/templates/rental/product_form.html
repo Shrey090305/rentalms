@@ -4,14 +4,26 @@
 {% block title %}{{ action }} Product - RentEase{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <h1 class="mb-4">
-        <i class="bi bi-{% if action == 'Create' %}plus-circle{% else %}pencil{% endif %}"></i> 
-        {{ action }} Product
-    </h1>
+<div class="container my-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'rental:dashboard' %}" style="text-decoration: none; color: #2563eb;"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'rental:product_manage' %}" style="text-decoration: none; color: #2563eb;">Products</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ action }} Product</li>
+        </ol>
+    </nav>
+
+    <div class="mb-5">
+        <h1 class="display-6 fw-bold mb-2">
+            <i class="bi bi-{% if action == 'Create' %}plus-circle{% else %}pencil{% endif %}"></i> 
+            {{ action }} Product
+        </h1>
+        <p class="text-secondary">Fill in the details below to {{ action|lower }} a product</p>
+    </div>
     
-    <div class="card">
-        <div class="card-body">
+    <div class="card" style="border: 2px solid #e2e8f0; border-radius: 1rem;">
+        <div class="card-body p-4">
             <form method="post" enctype="multipart/form-data" id="productForm">
                 {% csrf_token %}
                 {% bootstrap_form form %}
@@ -41,17 +53,17 @@
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addImageRow()">
-                        <i class="bi bi-plus-circle"></i> Add Another Image
+                    <button type="button" class="btn btn-sm" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; border: none; border-radius: 0.5rem; font-weight: 500;" onclick="addImageRow()">
+                        <i class="bi bi-plus-circle me-1"></i> Add Another Image
                     </button>
                 </div>
                 {% endif %}
                 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save"></i> Save Product
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-lg" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 0.75rem; font-weight: 600; padding: 0.75rem 2rem;">
+                        <i class="bi bi-save me-2"></i> Save Product
                     </button>
-                    <a href="{% url 'rental:product_manage' %}" class="btn btn-outline-secondary">
+                    <a href="{% url 'rental:product_manage' %}" class="btn btn-lg btn-outline-secondary" style="border-radius: 0.75rem; font-weight: 500; padding: 0.75rem 2rem;">
                         Cancel
                     </a>
                 </div>
@@ -61,11 +73,11 @@
     
     {% if product %}
         <!-- Existing Images Section (only for edit) -->
-        <div class="card mt-4">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0"><i class="bi bi-images"></i> Additional Product Images</h5>
+        <div class="card mt-4" style="border: 2px solid #e2e8f0; border-radius: 1rem;">
+            <div class="card-header" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border-radius: 0.85rem 0.85rem 0 0;">
+                <h5 class="mb-0"><i class="bi bi-images me-2"></i> Additional Product Images</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <!-- Add New Image Form -->
                 <div class="mb-4">
                     <h6>Add New Image</h6>

@@ -3,57 +3,60 @@
 {% block title %}Manage Products - RentEase{% endblock %}
 
 {% block content %}
-<div class="container-fluid my-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-box-seam"></i> Manage Products</h1>
-        <a href="{% url 'rental:product_create' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Add New Product
+<div class="container-fluid my-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-6 fw-bold mb-2"><i class="bi bi-box-seam"></i> Manage Products</h1>
+            <p class="text-secondary">Add, edit, and manage your product inventory</p>
+        </div>
+        <a href="{% url 'rental:product_create' %}" class="btn btn-lg" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; border: none; border-radius: 0.75rem; font-weight: 600; padding: 0.75rem 1.5rem;">
+            <i class="bi bi-plus-circle me-2"></i> Add New Product
         </a>
     </div>
     
     {% if products %}
-        <div class="card">
-            <div class="card-body">
+        <div class="card" style="border: 2px solid #e2e8f0; border-radius: 1rem;">
+            <div class="card-body p-4">
                 <div class="table-responsive">
                     <table class="table table-hover">
-                        <thead class="table-light">
+                        <thead style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-bottom: 2px solid #e2e8f0;">
                             <tr>
-                                <th>Name</th>
-                                <th>Price/Day</th>
-                                <th>Stock</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th class="fw-semibold" style="color: #1e293b;">Name</th>
+                                <th class="fw-semibold" style="color: #1e293b;">Price/Day</th>
+                                <th class="fw-semibold" style="color: #1e293b;">Stock</th>
+                                <th class="fw-semibold" style="color: #1e293b;">Status</th>
+                                <th class="fw-semibold" style="color: #1e293b;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for product in products %}
-                                <tr>
+                                <tr style="border-bottom: 1px solid #e2e8f0;">
                                     <td>
-                                        <strong>{{ product.name }}</strong><br>
-                                        <small class="text-muted">{{ product.description|truncatewords:10 }}</small>
+                                        <strong style="color: #1e293b;">{{ product.name }}</strong><br>
+                                        <small class="text-secondary">{{ product.description|truncatewords:10 }}</small>
                                     </td>
-                                    <td>₹{{ product.price_per_day }}</td>
+                                    <td><span class="fw-semibold" style="color: #2563eb;">₹{{ product.price_per_day }}</span></td>
                                     <td>
-                                        <span class="badge {% if product.quantity_on_hand > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                        <span class="badge px-3 py-2" style="{% if product.quantity_on_hand > 0 %}background: linear-gradient(135deg, #10b981 0%, #059669 100%);{% else %}background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);{% endif %}">
                                             {{ product.quantity_on_hand }}
                                         </span>
                                     </td>
                                     <td>
                                         {% if product.publish_on_website %}
-                                            <span class="badge bg-success">Published</span>
+                                            <span class="badge px-3 py-2" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Published</span>
                                         {% else %}
-                                            <span class="badge bg-secondary">Draft</span>
+                                            <span class="badge px-3 py-2" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%);">Draft</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <a href="{% url 'website:product_detail' product.pk %}" class="btn btn-outline-info" target="_blank">
+                                            <a href="{% url 'website:product_detail' product.pk %}" class="btn" style="border: 1px solid #0ea5e9; color: #0ea5e9; border-radius: 0.5rem 0 0 0.5rem;" target="_blank" title="View">
                                                 <i class="bi bi-eye"></i>
                                             </a>
-                                            <a href="{% url 'rental:product_edit' product.pk %}" class="btn btn-outline-primary">
+                                            <a href="{% url 'rental:product_edit' product.pk %}" class="btn" style="border: 1px solid #2563eb; border-left: none; color: #2563eb;" title="Edit">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="{% url 'rental:product_delete' product.pk %}" class="btn btn-outline-danger">
+                                            <a href="{% url 'rental:product_delete' product.pk %}" class="btn" style="border: 1px solid #ef4444; border-left: none; color: #ef4444; border-radius: 0 0.5rem 0.5rem 0;" title="Delete">
                                                 <i class="bi bi-trash"></i>
                                             </a>
                                         </div>
@@ -66,8 +69,13 @@
             </div>
         </div>
     {% else %}
-        <div class="alert alert-info">
-            No products yet. <a href="{% url 'rental:product_create' %}">Add your first product</a>
+        <div class="alert text-center p-5" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border: 1px solid #93c5fd; border-radius: 1rem;">
+            <i class="bi bi-inbox fs-1 text-primary mb-3 d-block"></i>
+            <h5 class="fw-bold mb-2">No Products Yet</h5>
+            <p class="text-secondary mb-3">Start building your inventory by adding your first product</p>
+            <a href="{% url 'rental:product_create' %}" class="btn btn-primary" style="border-radius: 0.75rem;">
+                <i class="bi bi-plus-circle me-2"></i> Add Your First Product
+            </a>
         </div>
     {% endif %}
 </div>

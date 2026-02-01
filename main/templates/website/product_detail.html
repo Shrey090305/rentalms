@@ -4,12 +4,21 @@
 {% block title %}{{ product.name }} - RentEase{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <div class="row">
-        <div class="col-md-6" style="padding-right: 70px; margin-top: 40px;">
+<div class="container my-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'website:home' %}" style="text-decoration: none; color: #2563eb;"><i class="bi bi-house"></i> Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'website:product_list' %}" style="text-decoration: none; color: #2563eb;">Products</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <div class="col-md-6">
             <!-- Image Carousel -->
             {% if product.additional_images.all %}
-                <div id="productCarousel" class="carousel slide" data-bs-ride="carousel" style="border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;">
+                <div id="productCarousel" class="carousel slide" data-bs-ride="carousel" style="border: 2px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
                     <div class="carousel-indicators">
                         {% if product.image %}
                             <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="0" class="active"></button>
@@ -26,13 +35,13 @@
                     <div class="carousel-inner">
                         {% if product.image %}
                             <div class="carousel-item active">
-                                <img src="{{ product.image.url }}" class="d-block w-100" alt="{{ product.name }}" style="height: 400px; object-fit: cover;">
+                                <img src="{{ product.image.url }}" class="d-block w-100" alt="{{ product.name }}" style="height: 450px; object-fit: contain; padding: 2rem;">
                             </div>
                         {% endif %}
                         
                         {% for img in product.additional_images.all %}
                             <div class="carousel-item {% if not product.image and forloop.first %}active{% endif %}">
-                                <img src="{{ img.image.url }}" class="d-block w-100" alt="{{ img.alt_text|default:product.name }}" style="height: 400px; object-fit: cover;">
+                                <img src="{{ img.image.url }}" class="d-block w-100" alt="{{ img.alt_text|default:product.name }}" style="height: 450px; object-fit: contain; padding: 2rem;">
                             </div>
                         {% endfor %}
                     </div>
@@ -49,88 +58,130 @@
             {% else %}
                 <!-- Single Image (No Additional Images) -->
                 {% if product.image %}
-                    <img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}" style="width: 100%; height: 400px; object-fit: cover; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                    <img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}" style="width: 100%; height: 450px; object-fit: contain; border: 2px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 2rem;">
                 {% else %}
-                    <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 400px; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
-                        <i class="bi bi-image text-white" style="font-size: 5rem;"></i>
+                    <div class="d-flex align-items-center justify-content-center" style="height: 450px; border: 2px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+                        <i class="bi bi-image text-secondary" style="font-size: 5rem;"></i>
                     </div>
                 {% endif %}
             {% endif %}
         </div>
         <div class="col-md-6">
-            <div class="d-flex align-items-start justify-content-between mb-3">
-                <h1 class="mb-0">{{ product.name }}</h1>
-                
-                <!-- Vendor Info -->
-                <div class="card border-0 shadow-sm ms-3" style="min-width: 200px; margin-top: 8px;">
-                    <div class="card-body py-2 px-3">
-                        <div class="d-flex align-items-center">
-                            {% if product.vendor.company_logo %}
-                                <img src="{{ product.vendor.company_logo.url }}" 
-                                     alt="{{ product.vendor.get_full_name }}"
-                                     class="vendor-logo me-2"
-                                     style="width: 35px; height: 35px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 6px; padding: 3px; background: white;">
-                            {% else %}
-                                <div class="vendor-logo-placeholder me-2" 
-                                     style="width: 35px; height: 35px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="bi bi-building text-white" style="font-size: 0.8rem;"></i>
-                                </div>
-                            {% endif %}
-                            <div class="flex-grow-1" style="min-width: 0;">
-                                <small class="text-muted d-block" style="font-size: 0.7rem;">Vendor</small>
-                                <div class="d-flex align-items-center">
-                                    <strong class="text-truncate" style="font-size: 0.85rem;">{{ product.vendor.get_full_name }}</strong>
-                                    <i class="bi bi-patch-check-fill text-primary ms-1" style="font-size: 0.75rem;" title="Verified"></i>
-                                </div>
+            <!-- Product Title and Category -->
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h1 class="display-6 fw-bold mb-2">{{ product.name }}</h1>
+                        {% if product.category %}
+                            <span class="badge px-3 py-2" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); font-size: 0.9rem;">{{ product.category.name }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vendor Card -->
+            <div class="card mb-4" style="border: 2px solid #e2e8f0; border-radius: 0.75rem; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        {% if product.vendor.company_logo %}
+                            <img src="{{ product.vendor.company_logo.url }}" 
+                                 alt="{{ product.vendor.get_full_name }}"
+                                 class="vendor-logo me-3"
+                                 style="width: 50px; height: 50px; object-fit: contain; border: 2px solid #e2e8f0; border-radius: 0.5rem; padding: 4px; background: white;">
+                        {% else %}
+                            <div class="vendor-logo-placeholder me-3" 
+                                 style="width: 50px; height: 50px; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); border-radius: 0.5rem; display: flex; align-items-center; justify-content: center;">
+                                <i class="bi bi-building text-white" style="font-size: 1.2rem;"></i>
+                            </div>
+                        {% endif %}
+                        <div class="flex-grow-1">
+                            <small class="text-secondary d-block" style="font-size: 0.75rem;">VERIFIED VENDOR</small>
+                            <div class="d-flex align-items-center">
+                                <strong style="font-size: 1rem; color: #1e293b;">{{ product.vendor.get_full_name }}</strong>
+                                <i class="bi bi-patch-check-fill text-primary ms-2" style="font-size: 1rem;"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <p class="lead">{{ product.description }}</p>
+            <!-- Description -->
+            <div class="mb-4">
+                <p class="lead text-secondary" style="line-height: 1.8;">{{ product.description }}</p>
+            </div>
             
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5><i class="bi bi-cash-coin"></i> Pricing</h5>
+            <!-- Pricing -->
+            <div class="card mb-4" style="border: 2px solid #e2e8f0; border-radius: 0.75rem;">
+                <div class="card-header" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; border-radius: 0.6rem 0.6rem 0 0;">
+                    <h5 class="mb-0"><i class="bi bi-cash-coin me-2"></i> Pricing</h5>
+                </div>
+                <div class="card-body p-4">
                     {% if product.price_per_hour %}
-                        <p class="mb-1"><strong>Hourly:</strong> ₹{{ product.price_per_hour }}/hour</p>
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #e2e8f0;">
+                            <span class="text-secondary"><i class="bi bi-clock me-2"></i> Hourly Rate</span>
+                            <span class="fs-4 fw-bold" style="color: #2563eb;">₹{{ product.price_per_hour }}</span>
+                        </div>
                     {% endif %}
                     {% if product.price_per_day %}
-                        <p class="mb-1"><strong>Daily:</strong> ₹{{ product.price_per_day }}/day</p>
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #e2e8f0;">
+                            <span class="text-secondary"><i class="bi bi-calendar-day me-2"></i> Daily Rate</span>
+                            <span class="fs-4 fw-bold" style="color: #2563eb;">₹{{ product.price_per_day }}</span>
+                        </div>
                     {% endif %}
                     {% if product.price_per_week %}
-                        <p class="mb-1"><strong>Weekly:</strong> ₹{{ product.price_per_week }}/week</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-secondary"><i class="bi bi-calendar-week me-2"></i> Weekly Rate</span>
+                            <span class="fs-4 fw-bold" style="color: #2563eb;">₹{{ product.price_per_week }}</span>
+                        </div>
                     {% endif %}
                 </div>
             </div>
             
-            <div class="alert alert-info">
-                <i class="bi bi-box"></i> <strong>{{ product.quantity_on_hand }}</strong> units available
+            <!-- Availability -->
+            <div class="alert mb-4" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border: 1px solid #6ee7b7; border-radius: 0.75rem;">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-box-seam fs-3 text-success me-3"></i>
+                    <div>
+                        <strong class="text-success">{{ product.quantity_on_hand }} units available</strong>
+                        <p class="mb-0 small text-secondary">Ready to ship immediately</p>
+                    </div>
+                </div>
             </div>
             
             {% if user.is_authenticated and user.role == 'customer' %}
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="bi bi-calendar-plus"></i> Add to Cart</h5>
+                <div class="card" style="border: 2px solid #e2e8f0; border-radius: 0.75rem;">
+                    <div class="card-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 0.6rem 0.6rem 0 0;">
+                        <h5 class="mb-0"><i class="bi bi-calendar-plus me-2"></i> Add to Cart</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-4">
                         <form method="post">
                             {% csrf_token %}
                             {% bootstrap_form form %}
-                            <button type="submit" class="btn btn-success btn-lg w-100">
-                                <i class="bi bi-cart-plus"></i> Add to Cart
+                            <button type="submit" class="btn btn-lg w-100 mt-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 0.75rem; font-weight: 600; padding: 0.875rem;">
+                                <i class="bi bi-cart-plus me-2"></i> Add to Cart
                             </button>
                         </form>
                     </div>
                 </div>
             {% elif user.is_authenticated %}
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle"></i> Only customers can rent products. Vendors and admins cannot place orders.
+                <div class="alert" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #fbbf24; border-radius: 0.75rem;">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-exclamation-triangle-fill fs-4 text-warning me-3"></i>
+                        <div>
+                            <strong>Account Type Restriction</strong>
+                            <p class="mb-0 small">Only customers can rent products. Vendors and admins cannot place orders.</p>
+                        </div>
+                    </div>
                 </div>
             {% else %}
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle"></i> Please <a href="{% url 'accounts:login' %}">login as a customer</a> to rent this product.
+                <div class="alert" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #fbbf24; border-radius: 0.75rem;">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-lock-fill fs-4 text-warning me-3"></i>
+                        <div>
+                            <strong>Login Required</strong>
+                            <p class="mb-0 small">Please <a href="{% url 'accounts:login' %}" style="color: #2563eb; text-decoration: underline;">login as a customer</a> to rent this product.</p>
+                        </div>
+                    </div>
                 </div>
             {% endif %}
         </div>

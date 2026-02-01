@@ -7,21 +7,24 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid my-4">
-    <h1 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard</h1>
+<div class="container-fluid my-5">
+    <div class="mb-5">
+        <h1 class="display-5 fw-bold mb-2"><i class="bi bi-speedometer2"></i> Dashboard</h1>
+        <p class="text-secondary fs-5">Monitor your rental business performance</p>
+    </div>
     
     <!-- Statistics Cards -->
-    <div class="row g-4 mb-4">
+    <div class="row g-4 mb-5">
         <div class="col-md-3">
-            <div class="card dashboard-card border-primary">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
+            <div class="card h-100" style="border: 2px solid #e2e8f0; border-radius: 1rem; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h6 class="text-muted">Total Products</h6>
-                            <h2 class="text-primary">{{ total_products }}</h2>
+                            <p class="text-secondary small mb-2 fw-semibold">TOTAL PRODUCTS</p>
+                            <h2 class="fw-bold mb-0" style="color: #2563eb;">{{ total_products }}</h2>
                         </div>
-                        <div>
-                            <i class="bi bi-box-seam text-primary" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); border-radius: 1rem; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);">
+                            <i class="bi bi-box-seam text-white" style="font-size: 1.8rem;"></i>
                         </div>
                     </div>
                 </div>
@@ -29,31 +32,15 @@
         </div>
         
         <div class="col-md-3">
-            <div class="card dashboard-card border-success">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
+            <div class="card h-100" style="border: 2px solid #e2e8f0; border-radius: 1rem; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h6 class="text-muted">Total Orders</h6>
-                            <h2 class="text-success">{{ total_orders }}</h2>
+                            <p class="text-secondary small mb-2 fw-semibold">TOTAL ORDERS</p>
+                            <h2 class="fw-bold mb-0" style="color: #16a34a;">{{ total_orders }}</h2>
                         </div>
-                        <div>
-                            <i class="bi bi-bag-check text-success" style="font-size: 3rem; opacity: 0.3;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card dashboard-card border-warning">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-muted">Active Rentals</h6>
-                            <h2 class="text-warning">{{ active_rentals }}</h2>
-                        </div>
-                        <div>
-                            <i class="bi bi-clock-history text-warning" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); border-radius: 1rem; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);">
+                            <i class="bi bi-bag-check text-white" style="font-size: 1.8rem;"></i>
                         </div>
                     </div>
                 </div>
@@ -61,15 +48,31 @@
         </div>
         
         <div class="col-md-3">
-            <div class="card dashboard-card border-info">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
+            <div class="card h-100" style="border: 2px solid #e2e8f0; border-radius: 1rem; background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h6 class="text-muted">Total Revenue</h6>
-                            <h2 class="text-info">₹{{ total_revenue }}</h2>
+                            <p class="text-secondary small mb-2 fw-semibold">ACTIVE RENTALS</p>
+                            <h2 class="fw-bold mb-0" style="color: #ca8a04;">{{ active_rentals }}</h2>
                         </div>
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); border-radius: 1rem; box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);">
+                            <i class="bi bi-clock-history text-white" style="font-size: 1.8rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card h-100" style="border: 2px solid #e2e8f0; border-radius: 1rem; background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <i class="bi bi-currency-rupee text-info" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <p class="text-secondary small mb-2 fw-semibold">TOTAL REVENUE</p>
+                            <h2 class="fw-bold mb-0" style="color: #0d9488;">₹{{ total_revenue }}</h2>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); border-radius: 1rem; box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);">
+                            <i class="bi bi-currency-rupee text-white" style="font-size: 1.8rem;"></i>
                         </div>
                     </div>
                 </div>

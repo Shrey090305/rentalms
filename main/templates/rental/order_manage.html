@@ -93,7 +93,7 @@
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th>Order #</th>
+                                <th>Products</th>
                                 <th>Customer</th>
                                 <th>Date</th>
                                 <th>Return Date</th>
@@ -107,7 +107,17 @@
                             {% for order in orders %}
                                 {% with return_status=order.get_return_status %}
                                 <tr class="{% if return_status == 'overdue' %}table-danger{% elif return_status == 'approaching' %}table-warning{% endif %}">
-                                    <td><strong>{{ order.order_number }}</strong></td>
+                                    <td>
+                                        <strong>
+                                            {% for line in order.lines.all|slice:":2" %}
+                                                {{ line.product.name }}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                            {% if order.lines.count > 2 %}
+                                                <span class="text-muted">+{{ order.lines.count|add:"-2" }} more</span>
+                                            {% endif %}
+                                        </strong>
+                                        <br><small class="text-muted">Order #{{ order.order_number }}</small>
+                                    </td>
                                     <td>
                                         {{ order.customer.get_full_name|default:order.customer.username }}<br>
                                         <small class="text-muted">{{ order.customer.email }}</small>

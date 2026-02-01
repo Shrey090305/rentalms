@@ -3,19 +3,22 @@
 {% block title %}Products - RentEase{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <h1 class="mb-4"><i class="bi bi-grid"></i> Browse Products</h1>
+<div class="container my-5">
+    <div class="mb-5">
+        <h1 class="display-5 fw-bold mb-2"><i class="bi bi-grid-3x3-gap"></i> Browse Products</h1>
+        <p class="text-secondary fs-5">Find the perfect equipment for your needs</p>
+    </div>
     
     <!-- Category Filter Pills -->
     {% if categories %}
-    <div class="mb-3">
+    <div class="mb-4">
         <div class="d-flex flex-wrap gap-2 align-items-center">
-            <span class="text-muted me-2"><i class="bi bi-funnel"></i> Categories:</span>
-            <a href="{% url 'website:product_list' %}{% if query or request.GET.min_price or request.GET.max_price %}?{% if query %}q={{ query }}{% endif %}{% if request.GET.min_price %}{% if query %}&{% endif %}min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}{% if query or request.GET.min_price %}&{% endif %}max_price={{ request.GET.max_price }}{% endif %}{% endif %}" class="btn btn-sm {% if not selected_category %}btn-primary{% else %}btn-outline-primary{% endif %}">
+            <span class="fw-semibold text-secondary me-2"><i class="bi bi-funnel"></i> Filter by:</span>
+            <a href="{% url 'website:product_list' %}{% if query or request.GET.min_price or request.GET.max_price %}?{% if query %}q={{ query }}{% endif %}{% if request.GET.min_price %}{% if query %}&{% endif %}min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}{% if query or request.GET.min_price %}&{% endif %}max_price={{ request.GET.max_price }}{% endif %}{% endif %}" class="btn btn-sm {% if not selected_category %}btn-primary{% else %}btn-outline-primary{% endif %}" style="border-radius: 2rem; padding: 0.5rem 1.25rem; font-weight: 500;">
                 All Products
             </a>
             {% for category in categories %}
-            <a href="?category={{ category.slug }}{% if query %}&q={{ query }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}" class="btn btn-sm {% if selected_category.id == category.id %}btn-primary{% else %}btn-outline-primary{% endif %}">
+            <a href="?category={{ category.slug }}{% if query %}&q={{ query }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}" class="btn btn-sm {% if selected_category.id == category.id %}btn-primary{% else %}btn-outline-primary{% endif %}" style="border-radius: 2rem; padding: 0.5rem 1.25rem; font-weight: 500;">
                 {{ category.name }}
             </a>
             {% endfor %}
@@ -24,24 +27,29 @@
     {% endif %}
     
     <!-- Search & Filter -->
-    <div class="card mb-4">
-        <div class="card-body">
+    <div class="card mb-4" style="border: 2px solid #e2e8f0; border-radius: 1rem;">
+        <div class="card-body p-4">
             <form method="get" class="row g-3">
                 {% if selected_category %}
                 <input type="hidden" name="category" value="{{ selected_category.slug }}">
                 {% endif %}
                 <div class="col-md-6">
-                    <input type="text" name="q" class="form-control" placeholder="Search products..." value="{{ query|default:'' }}">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white" style="border-right: none; border-radius: 0.75rem 0 0 0.75rem;">
+                            <i class="bi bi-search text-secondary"></i>
+                        </span>
+                        <input type="text" name="q" class="form-control" placeholder="Search for products..." value="{{ query|default:'' }}" style="border-left: none; border-radius: 0 0.75rem 0.75rem 0;">
+                    </div>
                 </div>
                 <div class="col-md-2">
-                    <input type="number" name="min_price" class="form-control" placeholder="Min Price" step="0.01" value="{{ request.GET.min_price|default:'' }}">
+                    <input type="number" name="min_price" class="form-control" placeholder="Min ₹" step="0.01" value="{{ request.GET.min_price|default:'' }}" style="border-radius: 0.75rem;">
                 </div>
                 <div class="col-md-2">
-                    <input type="number" name="max_price" class="form-control" placeholder="Max Price" step="0.01" value="{{ request.GET.max_price|default:'' }}">
+                    <input type="number" name="max_price" class="form-control" placeholder="Max ₹" step="0.01" value="{{ request.GET.max_price|default:'' }}" style="border-radius: 0.75rem;">
                 </div>
                 <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-search"></i> Search
+                    <button type="submit" class="btn btn-primary w-100" style="border-radius: 0.75rem; font-weight: 600;">
+                        <i class="bi bi-search me-2"></i> Search
                     </button>
                 </div>
             </form>
@@ -50,53 +58,59 @@
     
     <!-- Results Info -->
     {% if selected_category or query or request.GET.min_price or request.GET.max_price %}
-    <div class="alert alert-info d-flex justify-content-between align-items-center">
+    <div class="alert d-flex justify-content-between align-items-center mb-4" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border: 1px solid #93c5fd; border-radius: 0.75rem;">
         <div>
-            <i class="bi bi-filter"></i> <strong>Active Filters:</strong>
-            {% if selected_category %}<span class="badge bg-primary ms-2">Category: {{ selected_category.name }}</span>{% endif %}
-            {% if query %}<span class="badge bg-primary ms-2">Search: "{{ query }}"</span>{% endif %}
-            {% if request.GET.min_price %}<span class="badge bg-primary ms-2">Min: ₹{{ request.GET.min_price }}</span>{% endif %}
-            {% if request.GET.max_price %}<span class="badge bg-primary ms-2">Max: ₹{{ request.GET.max_price }}</span>{% endif %}
+            <i class="bi bi-filter-circle text-primary me-2"></i> <strong>Active Filters:</strong>
+            {% if selected_category %}<span class="badge ms-2" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);">{{ selected_category.name }}</span>{% endif %}
+            {% if query %}<span class="badge ms-2" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);">Search: "{{ query }}"</span>{% endif %}
+            {% if request.GET.min_price %}<span class="badge ms-2" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);">Min: ₹{{ request.GET.min_price }}</span>{% endif %}
+            {% if request.GET.max_price %}<span class="badge ms-2" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);">Max: ₹{{ request.GET.max_price }}</span>{% endif %}
         </div>
-        <a href="{% url 'website:product_list' %}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-x-circle"></i> Clear All Filters
+        <a href="{% url 'website:product_list' %}" class="btn btn-sm btn-outline-primary" style="border-radius: 2rem; font-weight: 500;">
+            <i class="bi bi-x-circle me-1"></i> Clear
         </a>
     </div>
     {% endif %}
     
     <!-- Products Grid -->
-    <div class="row g-4">
+    <div class="row g-4 mb-5">
         {% for product in products %}
             <div class="col-md-4">
                 <a href="{% url 'website:product_detail' product.pk %}" class="text-decoration-none">
-                    <div class="card h-100 product-card-hover">
+                    <div class="card h-100 product-card-hover" style="border: 1px solid #e2e8f0;">
                         {% if product.image %}
                             <img src="{{ product.image.url }}" class="card-img-top product-img" alt="{{ product.name }}">
                         {% else %}
-                            <div class="card-img-top product-img bg-secondary d-flex align-items-center justify-content-center">
-                                <i class="bi bi-image text-white" style="font-size: 3rem;"></i>
+                            <div class="card-img-top product-img d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);">
+                                <i class="bi bi-image text-secondary" style="font-size: 3rem;"></i>
                             </div>
                         {% endif %}
-                        <div class="card-body">
-                            {% if product.category %}
-                            <div class="mb-2">
-                                <span class="badge bg-secondary">{{ product.category.name }}</span>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title text-dark fw-bold mb-0">{{ product.name }}</h5>
+                                {% if product.category %}
+                                    <span class="badge" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">{{ product.category.name }}</span>
+                                {% endif %}
                             </div>
-                            {% endif %}
-                            <h5 class="card-title text-dark">{{ product.name }}</h5>
-                            <p class="card-text text-muted">{{ product.description|truncatewords:20 }}</p>
-                            <div class="mb-2">
-                                <small class="text-muted">
-                                    <i class="bi bi-box"></i> Available: {{ product.quantity_on_hand }}
-                                </small>
+                            <p class="card-text text-secondary small mb-3">{{ product.description|truncatewords:20 }}</p>
+                            <div class="d-flex align-items-center gap-2 mb-3" style="color: #64748b;">
+                                <i class="bi bi-box-seam"></i>
+                                <small class="fw-medium">{{ product.quantity_on_hand }} available</small>
                             </div>
-                            <hr>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    {% if product.price_per_hour %}
-                                        <small class="text-muted">₹{{ product.price_per_hour }}/hr</small><br>
-                                    {% endif %}
-                                    <span class="h5 mb-0 text-primary">₹{{ product.price_per_day }}/day</span>
+                            <div class="pt-3" style="border-top: 1px solid #e2e8f0;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if product.price_per_hour %}
+                                            <div class="small text-secondary mb-1">₹{{ product.price_per_hour }}/hour</div>
+                                        {% endif %}
+                                        <div>
+                                            <span class="fs-4 fw-bold" style="color: #2563eb;">₹{{ product.price_per_day }}</span>
+                                            <span class="small text-secondary">/day</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-primary">
+                                        <i class="bi bi-arrow-right-circle fs-3"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -105,8 +119,13 @@
             </div>
         {% empty %}
             <div class="col-12">
-                <div class="alert alert-info">
-                    No products found. Try adjusting your search.
+                <div class="alert alert-info text-center p-5" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; border-radius: 1rem;">
+                    <i class="bi bi-inbox fs-1 text-primary mb-3 d-block"></i>
+                    <h5 class="fw-bold mb-2">No products found</h5>
+                    <p class="text-secondary mb-3">Try adjusting your search criteria or browse all categories</p>
+                    <a href="{% url 'website:product_list' %}" class="btn btn-primary" style="border-radius: 0.75rem;">
+                        <i class="bi bi-grid me-2"></i> View All Products
+                    </a>
                 </div>
             </div>
         {% endfor %}

@@ -4,21 +4,21 @@
 {% block title %}Sign Up - RentEase{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container" style="margin-top: 4rem; margin-bottom: 4rem;">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card shadow">
+            <div class="card" style="border: 2px solid #e2e8f0; border-radius: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 1.4rem 1.4rem 0 0;">
+                    <i class="bi bi-person-plus" style="font-size: 3rem;"></i>
+                    <h2 class="mt-3 mb-1 fw-bold">Create Account</h2>
+                    <p class="mb-0">Join RentEase today</p>
+                </div>
                 <div class="card-body p-5">
-                    <h2 class="card-title text-center mb-4">
-                        <i class="bi bi-person-plus"></i> Create Account
-                    </h2>
-                    <p class="text-center text-muted mb-4">Join RentEase today</p>
-                    
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         
                         <!-- Account Type Selection -->
-                        <div class="mb-4 p-4 bg-light rounded">
+                        <div class="mb-4 p-4 rounded" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 2px solid #e2e8f0;">
                             <label class="form-label fw-bold mb-3">
                                 <i class="bi bi-person-badge"></i> Account Type *
                             </label>
@@ -107,16 +107,16 @@
                             {% bootstrap_field form.coupon_code %}
                         </div>
                         
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-check-circle"></i> Create Account
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-lg" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 0.75rem; font-weight: 600; padding: 0.875rem;">
+                                <i class="bi bi-check-circle me-2"></i> Create Account
                             </button>
                         </div>
                     </form>
                     
-                    <hr class="my-4">
-                    <p class="text-center mb-0">
-                        Already have an account? <a href="{% url 'accounts:login' %}">Login here</a>
+                    <hr class="my-4" style="border-color: #e2e8f0;">
+                    <p class="text-center mb-0 text-secondary">
+                        Already have an account? <a href="{% url 'accounts:login' %}" style="color: #2563eb; text-decoration: none; font-weight: 600;">Login here</a>
                     </p>
                 </div>
             </div>
@@ -126,7 +126,7 @@
 
 <style>
     .form-check-input:checked + .form-check-label {
-        color: #0d6efd;
+        color: #2563eb;
     }
 </style>
 {% endblock %}

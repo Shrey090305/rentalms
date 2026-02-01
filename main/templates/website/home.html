@@ -4,59 +4,94 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="bg-primary text-white py-5">
-    <div class="container">
+<section class="hero-section" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #7c3aed 100%); padding: 5rem 0; position: relative; overflow: hidden;">
+    <div class="container position-relative">
         <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold">Welcome to RentEase</h1>
-                <p class="lead">Your one-stop solution for rental equipment and services</p>
-                <div class="mt-4">
-                    <a href="{% url 'website:product_list' %}" class="btn btn-light btn-lg me-2">
-                        <i class="bi bi-search"></i> Browse Products
+            <div class="col-lg-6 text-white">
+                <h1 class="display-3 fw-bold mb-4" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">Welcome to RentEase</h1>
+                <p class="lead mb-4" style="font-size: 1.35rem; opacity: 0.95;">Your trusted platform for premium rental equipment and services. Quality, convenience, and reliability - all in one place.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{% url 'website:product_list' %}" class="btn btn-light btn-lg px-4 py-3" style="border-radius: 0.75rem; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);">
+                        <i class="bi bi-search me-2"></i> Browse Products
                     </a>
                     {% if not user.is_authenticated %}
-                        <a href="{% url 'accounts:signup' %}" class="btn btn-outline-light btn-lg">
-                            <i class="bi bi-person-plus"></i> Sign Up
+                        <a href="{% url 'accounts:signup' %}" class="btn btn-outline-light btn-lg px-4 py-3" style="border-radius: 0.75rem; font-weight: 600; border-width: 2px;">
+                            <i class="bi bi-person-plus me-2"></i> Get Started
                         </a>
                     {% endif %}
                 </div>
+                <div class="mt-4 d-flex gap-4 text-white" style="opacity: 0.9;">
+                    <div>
+                        <div class="fs-3 fw-bold">500+</div>
+                        <div class="small">Products</div>
+                    </div>
+                    <div>
+                        <div class="fs-3 fw-bold">1000+</div>
+                        <div class="small">Happy Customers</div>
+                    </div>
+                    <div>
+                        <div class="fs-3 fw-bold">24/7</div>
+                        <div class="small">Support</div>
+                    </div>
+                </div>
             </div>
-            <div class="col-lg-6">
-                <i class="bi bi-box-seam" style="font-size: 15rem; opacity: 0.3;"></i>
+            <div class="col-lg-6 d-none d-lg-block text-center">
+                <div style="position: relative;">
+                    <i class="bi bi-box-seam" style="font-size: 20rem; color: rgba(255,255,255,0.15);"></i>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: float 3s ease-in-out infinite;">
+                        <i class="bi bi-stars" style="font-size: 8rem; color: rgba(255,255,255,0.3);"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
+<style>
+    @keyframes float {
+        0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+        50% { transform: translate(-50%, -50%) translateY(-20px); }
+    }
+</style>
+
 <!-- Features -->
-<section class="py-5">
+<section class="py-5" style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);">
     <div class="container">
-        <h2 class="text-center mb-5">Why Choose RentEase?</h2>
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Why Choose RentEase?</h2>
+            <p class="text-secondary fs-5">Experience the difference with our premium rental services</p>
+        </div>
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="card h-100 text-center">
-                    <div class="card-body">
-                        <i class="bi bi-clock-history text-primary" style="font-size: 3rem;"></i>
-                        <h5 class="card-title mt-3">Flexible Rental Periods</h5>
-                        <p class="card-text">Rent by hour, day, or week - you choose what works for you</p>
+                <div class="card h-100 text-center border-0" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); transition: all 0.3s ease;">
+                    <div class="card-body p-4">
+                        <div class="mb-3" style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); width: 80px; height: 80px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);">
+                            <i class="bi bi-clock-history text-white" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="card-title mt-3 fw-bold">Flexible Rental Periods</h5>
+                        <p class="card-text text-secondary">Rent by hour, day, or week - you choose what works best for your needs</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card h-100 text-center">
-                    <div class="card-body">
-                        <i class="bi bi-shield-check text-primary" style="font-size: 3rem;"></i>
-                        <h5 class="card-title mt-3">Quality Guaranteed</h5>
-                        <p class="card-text">All equipment is verified and maintained to highest standards</p>
+                <div class="card h-100 text-center border-0" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); transition: all 0.3s ease;">
+                    <div class="card-body p-4">
+                        <div class="mb-3" style="background: linear-gradient(135deg, #10b981 0%, #34d399 100%); width: 80px; height: 80px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);">
+                            <i class="bi bi-shield-check text-white" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="card-title mt-3 fw-bold">Quality Guaranteed</h5>
+                        <p class="card-text text-secondary">All equipment is verified and maintained to the highest standards</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card h-100 text-center">
-                    <div class="card-body">
-                        <i class="bi bi-lightning-charge text-primary" style="font-size: 3rem;"></i>
-                        <h5 class="card-title mt-3">Quick & Easy</h5>
-                        <p class="card-text">Simple booking process with instant confirmation</p>
+                <div class="card h-100 text-center border-0" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); transition: all 0.3s ease;">
+                    <div class="card-body p-4">
+                        <div class="mb-3" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); width: 80px; height: 80px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.3);">
+                            <i class="bi bi-lightning-charge text-white" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="card-title mt-3 fw-bold">Quick & Easy</h5>
+                        <p class="card-text text-secondary">Simple booking process with instant confirmation and support</p>
                     </div>
                 </div>
             </div>
@@ -66,14 +101,17 @@
 
 <!-- Featured Products -->
 {% if featured_products %}
-<section class="py-5 bg-light">
+<section class="py-5" style="background: #f8fafc;">
     <div class="container">
-        <h2 class="text-center mb-5">Featured Products</h2>
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Featured Products</h2>
+            <p class="text-secondary fs-5">Explore our most popular rental items</p>
+        </div>
         <div class="row g-4">
             {% for product in featured_products %}
                 <div class="col-md-4">
                     <a href="{% url 'website:product_detail' product.pk %}" class="text-decoration-none">
-                        <div class="card h-100 product-card-hover">
+                        <div class="card h-100 product-card-hover" style="border: 1px solid #e2e8f0;">
                             {% if product.image %}
                                 <img src="{{ product.image.url }}" class="card-img-top product-img" alt="{{ product.name }}">
                             {% else %}
@@ -81,11 +119,23 @@
                                     <i class="bi bi-image text-white" style="font-size: 3rem;"></i>
                                 </div>
                             {% endif %}
-                            <div class="card-body">
-                                <h5 class="card-title text-dark">{{ product.name }}</h5>
-                                <p class="card-text text-muted">{{ product.description|truncatewords:15 }}</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="h5 mb-0 text-primary">₹{{ product.price_per_day }}/day</span>
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title text-dark fw-bold mb-0">{{ product.name }}</h5>
+                                    {% if product.category %}
+                                        <span class="badge" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">{{ product.category.name }}</span>
+                                    {% endif %}
+                                </div>
+                                <p class="card-text text-secondary small">{{ product.description|truncatewords:15 }}</p>
+                                <div class="d-flex justify-content-between align-items-center mt-3 pt-3" style="border-top: 1px solid #e2e8f0;">
+                                    <div>
+                                        <div class="small text-secondary">Starting from</div>
+                                        <span class="fs-4 fw-bold" style="color: #2563eb;">₹{{ product.price_per_day }}</span>
+                                        <span class="small text-secondary">/day</span>
+                                    </div>
+                                    <div class="text-primary">
+                                        <i class="bi bi-arrow-right-circle fs-3"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -93,9 +143,9 @@
                 </div>
             {% endfor %}
         </div>
-        <div class="text-center mt-4">
-            <a href="{% url 'website:product_list' %}" class="btn btn-primary btn-lg">
-                View All Products <i class="bi bi-arrow-right"></i>
+        <div class="text-center mt-5">
+            <a href="{% url 'website:product_list' %}" class="btn btn-primary btn-lg px-5 py-3" style="border-radius: 0.75rem; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);">
+                View All Products <i class="bi bi-arrow-right ms-2"></i>
             </a>
         </div>
     </div>
@@ -103,17 +153,17 @@
 {% endif %}
 
 <!-- CTA Section -->
-<section class="py-5 bg-primary text-white">
-    <div class="container text-center">
-        <h2 class="mb-4">Ready to Get Started?</h2>
-        <p class="lead mb-4">Join thousands of satisfied customers renting with RentEase</p>
+<section class="py-5" style="background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);">
+    <div class="container text-center text-white">
+        <h2 class="display-6 fw-bold mb-3">Ready to Get Started?</h2>
+        <p class="lead mb-4" style="opacity: 0.95;">Join thousands of satisfied customers renting with RentEase</p>
         {% if not user.is_authenticated %}
-            <a href="{% url 'accounts:signup' %}" class="btn btn-light btn-lg">
-                <i class="bi bi-person-plus"></i> Create Account Today
+            <a href="{% url 'accounts:signup' %}" class="btn btn-light btn-lg px-5 py-3" style="border-radius: 0.75rem; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);">
+                <i class="bi bi-person-plus me-2"></i> Create Account Today
             </a>
         {% else %}
-            <a href="{% url 'website:product_list' %}" class="btn btn-light btn-lg">
-                <i class="bi bi-search"></i> Start Browsing
+            <a href="{% url 'website:product_list' %}" class="btn btn-light btn-lg px-5 py-3" style="border-radius: 0.75rem; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);">
+                <i class="bi bi-search me-2"></i> Start Browsing
             </a>
         {% endif %}
     </div>
